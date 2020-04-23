@@ -21,7 +21,7 @@ def hello():
     slack.chat.post_message("#random", "Slacker test")
     return "Hello World!!"
 
-@app.route("test/register/<id_>")
+@app.route("/test/register/<id_>")
 def register(id_):
     try:
         user=User(
@@ -34,7 +34,7 @@ def register(id_):
     except Exception as e:
             return(str(e))
 
-@app.route("test/make_match")
+@app.route("/test/make_match")
 def make_match():
     users = User.query.all()
     print(users)
@@ -51,7 +51,7 @@ def make_match():
     except Exception as e:
             return(str(e))
 
-@app.route("test/match_list")
+@app.route("/test/match_list")
 def match_list():
     match = Match.query.all()[0]
     print(match.users)
