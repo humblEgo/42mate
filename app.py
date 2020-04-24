@@ -51,7 +51,8 @@ def make_match():
         )
         db.session.add(match)
         db.session.commit()
-        return str(match.match_day.replace(tzinfo=timezone('TIME_ZONE')))
+        utc = match.match_day
+        return str(utc.astimezone(timezone(os.environ['TIME_ZONE'])))
     except Exception as e:
             return(str(e))
 
