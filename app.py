@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 
 from datetime import datetime
-import pytz
+from pytz import timezone
 import requests
 
 token = os.environ['SLACK_TOKEN']
