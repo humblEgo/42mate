@@ -19,8 +19,8 @@ from models import User, Match
 
 @app.route("/")
 def hello():
-    dt = datetime.now()
-    slack.chat.post_message("#random", dt)
+   # dt = datetime.now()
+    #slack.chat.post_message("#random", dt)
     return "Hello World!!"
 
 @app.route("/test/register/<id_>")
