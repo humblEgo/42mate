@@ -59,29 +59,28 @@ def match_list():
 
 
 #data = request.get_data()
-@app.route("/slack/command", methods=['POST'])
+@app.route("/slack/command", methods=['GET', 'POST'])
 def command_main():
     #data = request.form.getlist('text')
     #print(data)
-    data = request.get_json(force=True)
-    print(data['text'])
+    #data = request.get_json(force=True)
+#    print(data['text'])
     # data = request.get_data()
     #text = data['text']
     #print(text)
     #command = parsing(text)
+  #  command = parsing()
+   # if command == 'register':
+    #    register(data)
+   # elif command == 'list':
+    #    list
 
-    command = parsing()
-    if command == 'register':
-        register(data)
-    elif command == 'list':
-        list
-
-    return ('', 200)
+   # return ('', 200)
 
 if __name__ == "__main__":
     app.run()
 
-#
+# 슬랙 event subscriber
 # @app.route("/slack", methods=["GET", "POST"])
 # def hears():
 #     slack_event = json.loads(request.data)
@@ -93,3 +92,4 @@ if __name__ == "__main__":
 #         return event_handler(event_type, slack_event)
 #     return make_response("슬랙 요청에 대한 이벤트가 없습니다.", 404,
 #                          {"X-Slack-No-Retry": 1})
+
