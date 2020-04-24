@@ -51,7 +51,7 @@ def make_match():
         )
         db.session.add(match)
         db.session.commit()
-        return "{}----------{}".format(str(match.match_day), str(datetime.now(timezone(os.environ['TIME_ZONE']))))
+        return "Success"
     except Exception as e:
             return(str(e))
 
