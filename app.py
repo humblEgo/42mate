@@ -20,9 +20,10 @@ from models import User, Match
 
 @app.route("/")
 def hello():
-    dt = datetime.now(timezone('TIME_ZONE'))
+    dt = datetime.now(timezone(os.envrion['TIME_ZONE']))
     slack.chat.post_message("#random", dt)
-    return "Hello World!!"
+    env_var = os.environ['TIME_ZONE']
+    return env_var
 
 @app.route("/test/register/<id_>")
 def register(id_):
