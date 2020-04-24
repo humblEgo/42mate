@@ -49,6 +49,8 @@ def make_match():
             user1 = users[0],
             user2 = users[1]
         )
+        print(datetime.now(timezone(os.environ['TIME_ZONE'])))
+        print(match.match_day)
         db.session.add(match)
         db.session.commit()
         return "Success"
