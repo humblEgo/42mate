@@ -20,7 +20,7 @@ from models import User, Match
 
 @app.route("/")
 def hello():
-    dt = datetime.now(timezone(os.envrion['TIME_ZONE']))
+    dt = datetime.now(timezone(os.environ['TIME_ZONE']))
     slack.chat.post_message("#random", dt)
     env_var = os.environ['TIME_ZONE']
     return env_var

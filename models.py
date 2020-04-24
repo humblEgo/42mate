@@ -1,6 +1,7 @@
 from app import db
 from datetime import datetime
 from pytz import timezone
+import os
 
 user_identifier = db.Table('user_identifier',
     db.Column('user_index', db.Integer, db.ForeignKey('users.index')),
