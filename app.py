@@ -1,9 +1,10 @@
 from slacker import Slacker
 from flask import Flask, request
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy ip #mport SQLAlchemy
 import os
 
 from datetime import datetime
+import pytz
 import requests
 
 token = os.environ['SLACK_TOKEN']
@@ -19,7 +20,7 @@ from models import User, Match
 
 @app.route("/")
 def hello():
-    dt = datetime.now()
+    dt = datetime.now(timezone('TIME_ZONE'))
     slack.chat.post_message("#random", dt)
     return "Hello World!!"
 
