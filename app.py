@@ -3,6 +3,7 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 import os
 
+from datetime import datetime
 import requests
 
 token = os.environ['SLACK_TOKEN']
@@ -18,7 +19,8 @@ from models import User, Match
 
 @app.route("/")
 def hello():
-    slack.chat.post_message("#random", "Slacker test")
+    dt = datetime.now()
+    slack.chat.post_message("#random", dt)
     return "Hello World!!"
 
 @app.route("/test/register/<id_>")
@@ -61,8 +63,8 @@ def match_list():
 #data = request.get_data()
 @app.route("/slack/command", methods=['GET', 'POST'])
 def command_main():
-    #data = request.form.getlist('text')
-    #print(data)
+    data = request.form.getlist('text')
+    print(data)
     #data = request.get_json(force=True)
 #    print(data['text'])
     # data = request.get_data()
@@ -75,7 +77,7 @@ def command_main():
    # elif command == 'list':
     #    list
 
-   # return ('', 200)
+    return ('', 200)
 
 if __name__ == "__main__":
     app.run()
