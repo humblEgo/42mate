@@ -1,6 +1,6 @@
 from slacker import Slacker
 from flask import Flask, request
-from flask_sqlalchemy ip #mport SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 import os
 
 from datetime import datetime
