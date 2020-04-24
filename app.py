@@ -21,7 +21,7 @@ from models import User, Match
 @app.route("/")
 def hello():
     dt = datetime.now(timezone(os.environ['TIME_ZONE']))
-    slack.chat.post_message("#random", dt)
+    slack.chat.post_message("#bot-test", dt)
     env_var = os.environ['TIME_ZONE']
     return env_var
 
@@ -51,7 +51,7 @@ def make_match():
         )
         db.session.add(match)
         db.session.commit()
-        return "Success"
+        return str(match.match_day.replace(tzinfo=timezone('TIME_ZONE')))
     except Exception as e:
             return(str(e))
 
