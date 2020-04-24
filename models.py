@@ -1,5 +1,6 @@
 from app import db
 from datetime import datetime
+from pytz import timezone
 
 user_identifier = db.Table('user_identifier',
     db.Column('user_index', db.Integer, db.ForeignKey('users.index')),
@@ -40,7 +41,7 @@ class Match(db.Model):
     users = db.relationship(User, secondary=user_identifier, backref='matches')
 
     def __init__(self, user1, user2):
-        self.match_day = datetime.now()
+        self.match_day = datetime.now(timezone('TIME_ZONE'))
         self.users.append(user1)
         self.users.append(user2)
 
