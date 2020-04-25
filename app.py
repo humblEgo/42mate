@@ -20,10 +20,11 @@ from models import User, Match
 
 @app.route("/")
 def hello():
-    dt = datetime.now(timezone(os.environ['TIME_ZONE']))
-    slack.chat.post_message("#bot-test", dt)
-    env_var = os.environ['TIME_ZONE']
-    return env_var
+    dt_utc = datetime.now()
+    dt_kst = datetime.now(timezone(os.environ['TIME_ZONE']))
+    slack.chat.post_message("#bot-test", dt_utc)
+    slack.chat.post_message("#bot-test", dt_kst)
+    return "Compare between utc and kst"
 
 @app.route("/test/register/<id_>")
 def register(id_):
