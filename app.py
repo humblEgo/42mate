@@ -39,6 +39,126 @@ def register(id_):
     except Exception as e:
             return(str(e))
 
+@app.route("/slack/command", methods=['POST'])
+def command_view():
+    slack_id = request.form.getlist('user_id')
+    user_name = request.form.getlist('user_name')
+    attachments_registered = [
+        {
+            "fallback": "You are unable to choose a action",
+            "callback_id": "choose_action",
+            "color": "#FF6F61",
+            "attachment_type": "default",
+            "actions": [
+                {
+                    "name": "unjoin",
+                    "text": "내일 만나지 않기",
+                    "type": "button",
+                    "value": "unjoin"
+                },
+                {
+                    "name": "unregister",
+                    "text": "42mate 휴식하기",
+                    "style": "danger",
+                    "type": "button",
+                    "value": "unregister",
+                    "confirm": {
+                        "title": "정말 휴식하시겠어요?",
+                        "text": "언제라도 다시 돌아오세요.",
+                        "ok_text": "휴식하기",
+                        "dismiss_text": "더 생각해보기"
+                    }
+                }
+            ]
+        }
+    ]
+    attachments_unregistered = [
+        {
+            "fallback": "You are unable to choose a action",
+            "callback_id": "choose_action",
+            "color": "#FF6F61",
+            "attachment_type": "default",
+            "actions": [
+                {
+                    "name": "register",
+                    "text": "42mate 등록하기",
+                    "style": "primary",
+                    "type": "button",
+                    "value": "register",
+                }
+            ]
+        }
+    ]
+    attachments_joined = [
+        {
+            "fallback": "You are unable to choose a action",
+            "callback_id": "choose_action",
+            "color": "#FF6F61",
+            "attachment_type": "default",
+            "actions": [
+                {
+                    "name": "unjoin",
+                    "text": "내일 만나지 않기",
+                    "type": "button",
+                    "value": "unjoin"
+                },
+                {
+                    "name": "unregister",
+                    "text": "42mate 휴식하기",
+                    "style": "danger",
+                    "type": "button",
+                    "value": "unregister",
+                    "confirm": {
+                        "title": "정말 휴식하시겠어요?",
+                        "text": "언제라도 다시 돌아오세요.",
+                        "ok_text": "휴식하기",
+                        "dismiss_text": "더 생각해보기"
+                    }
+                }
+            ]
+        }
+    ]
+    attachments_unjoined = [
+        {
+            "fallback": "You are unable to choose a action",
+            "callback_id": "choose_action",
+            "color": "#FF6F61",
+            "attachment_type": "default",
+            "actions": [
+                {
+                    "name": "join",
+                    "text": "내일 만나기",
+                    "style": "primary",
+                    "type": "button",
+                    "value": "join"
+                },
+                {
+                    "name": "unregister",
+                    "text": "42mate 휴식하기",
+                    "style": "danger",
+                    "type": "button",
+                    "value": "unregister",
+                    "confirm": {
+                        "title": "정말 휴식하시겠어요?",
+                        "text": "언제라도 다시 돌아오세요.",
+                        "ok_text": "휴식하기",
+                        "dismiss_text": "더 생각해보기"
+                    }
+                }
+            ]
+        }
+    ]
+    response = slack.conversations.open(users=slack_id, return_im=True)
+    channel = response.body['channel']['id']
+    if User.query.filter_by(slack_id=slack_id[0]).count():
+        slack.chat.post_message(channel=channel, text="re-visit text", attachments=attachments)
+    else:
+        register(slack_id[0], user_name[0])
+        update_without_register_button()
+        slack.chat.post_message(channel=channel, text="first-visit-text", attachments=attachments)
+    return ("", 200)
+
+
 @app.route("/test/make_match")
 def make_match():
     users = User.query.all()
@@ -63,25 +183,6 @@ def match_list():
     print(match.users)
     return (match.users, 200)
 
-
-#data = request.get_data()
-@app.route("/slack/command", methods=['GET', 'POST'])
-def command_main():
-    data = request.form.getlist('text')
-    print(data)
-    #data = request.get_json(force=True)
-#    print(data['text'])
-    # data = request.get_data()
-    #text = data['text']
-    #print(text)
-    #command = parsing(text)
-  #  command = parsing()
-   # if command == 'register':
-    #    register(data)
-   # elif command == 'list':
-    #    list
-
-    return ('', 200)
 
 if __name__ == "__main__":
     app.run()
