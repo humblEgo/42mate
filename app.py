@@ -238,7 +238,7 @@ def command_callback():
 if __name__ == "__main__":
     app.run()
 
-슬랙 event subscriber
+#슬랙 event subscriber
 @app.route("/slack/command", methods=["GET", "POST"])
 def hears():
      slack_event = json.loads(request.data)
