@@ -42,90 +42,90 @@ def register(slack_id, intra_id):
 
 
 #@app.route("/slack/command", methods=['POST'])
-def command_view():
-    slack_id = request.form.getlist('user_id')
-    user_name = request.form.getlist('user_name')
-    block_test = [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "42MATE에 오신걸 환영합니다!!"
-            }
-        },
-        {
-            "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": True,
-                        "text": "42mate 등록하기"
-                    },
-                    "style": "primary",
-                    "value": "register"
-                },
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": True,
-                        "text": "내일 만나기"
-                    },
-                    "style": "primary",
-                    "value": "join"
-                },
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": True,
-                        "text": "내일 만나지 않기"
-                    },
-                    "style": "danger",
-                    "value": "unjoin"
-                },
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": True,
-                        "text": "42mate 휴식하기"
-                    },
-                    "style": "danger",
-                    "value": "unregister",
-                    "confirm": {
-                        "title": {
-                            "type": "plain_text",
-                            "text": "정말 휴식하시겠어요?"
-                        },
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "언제라도 다시 돌아오세요"
-                        },
-                        "confirm": {
-                            "type": "plain_text",
-                            "text": "휴식하기"
-                        },
-                        "deny": {
-                            "type": "plain_text",
-                            "text": "더 생각해보기"
-                        }
-                    }
-                }
-            ]
-        }
-    ]
-    block = json.dumps(block_test)
-    response = slack.conversations.open(users=slack_id, return_im=True)
-    channel = response.body['channel']['id']
-    if User.query.filter_by(slack_id=slack_id[0]).count():
-        slack.chat.post_message(channel=channel, text="re-visit text", blocks=block)
-    else:
-        register(slack_id[0], user_name[0])
-        slack.chat.post_message(channel=channel, text="first-visit-text", blocks=block)
-    return ("", 200)
+# def command_view():
+#     slack_id = request.form.getlist('user_id')
+#     user_name = request.form.getlist('user_name')
+#     block_test = [
+#         {
+#             "type": "section",
+#             "text": {
+#                 "type": "mrkdwn",
+#                 "text": "42MATE에 오신걸 환영합니다!!"
+#             }
+#         },
+#         {
+#             "type": "actions",
+#             "elements": [
+#                 {
+#                     "type": "button",
+#                     "text": {
+#                         "type": "plain_text",
+#                         "emoji": True,
+#                         "text": "42mate 등록하기"
+#                     },
+#                     "style": "primary",
+#                     "value": "register"
+#                 },
+#                 {
+#                     "type": "button",
+#                     "text": {
+#                         "type": "plain_text",
+#                         "emoji": True,
+#                         "text": "내일 만나기"
+#                     },
+#                     "style": "primary",
+#                     "value": "join"
+#                 },
+#                 {
+#                     "type": "button",
+#                     "text": {
+#                         "type": "plain_text",
+#                         "emoji": True,
+#                         "text": "내일 만나지 않기"
+#                     },
+#                     "style": "danger",
+#                     "value": "unjoin"
+#                 },
+#                 {
+#                     "type": "button",
+#                     "text": {
+#                         "type": "plain_text",
+#                         "emoji": True,
+#                         "text": "42mate 휴식하기"
+#                     },
+#                     "style": "danger",
+#                     "value": "unregister",
+#                     "confirm": {
+#                         "title": {
+#                             "type": "plain_text",
+#                             "text": "정말 휴식하시겠어요?"
+#                         },
+#                         "text": {
+#                             "type": "mrkdwn",
+#                             "text": "언제라도 다시 돌아오세요"
+#                         },
+#                         "confirm": {
+#                             "type": "plain_text",
+#                             "text": "휴식하기"
+#                         },
+#                         "deny": {
+#                             "type": "plain_text",
+#                             "text": "더 생각해보기"
+#                         }
+#                     }
+#                 }
+#             ]
+#         }
+#     ]
+#     block = json.dumps(block_test)
+#     response = slack.conversations.open(users=slack_id, return_im=True)
+#     channel = response.body['channel']['id']
+#     if User.query.filter_by(slack_id=slack_id[0]).count():
+#         slack.chat.post_message(channel=channel, text="re-visit text", blocks=block)
+#     else:
+#         register(slack_id[0], user_name[0])
+#         slack.chat.post_message(channel=channel, text="first-visit-text", blocks=block)
+#     return ("", 200)
 
 
 @app.route("/test/make_match")
