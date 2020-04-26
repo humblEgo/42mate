@@ -41,7 +41,7 @@ def register(slack_id, intra_id):
             return(str(e))
 
 
-@app.route("/slack/command", methods=['POST'])
+#@app.route("/slack/command", methods=['POST'])
 def command_view():
     slack_id = request.form.getlist('user_id')
     user_name = request.form.getlist('user_name')
@@ -238,16 +238,16 @@ def command_callback():
 if __name__ == "__main__":
     app.run()
 
-#슬랙 event subscriber
-# @app.route("/slack/command", methods=["GET", "POST"])
-# def hears():
-#      slack_event = json.loads(request.data)
-#      if "challenge" in slack_event:
-#          return make_response(slack_event["challenge"], 200,
-#                               {"content_type": "application/json"})
-#      if "event" in slack_event:
-#          event_type = slack_event["event"]["type"]
-#          return event_handler(event_type, slack_event)
-#      return make_response("슬랙 요청에 대한 이벤트가 없습니다.", 404,
-#                           {"X-Slack-No-Retry": 1})
+슬랙 event subscriber
+@app.route("/slack/command", methods=["GET", "POST"])
+def hears():
+     slack_event = json.loads(request.data)
+     if "challenge" in slack_event:
+         return make_response(slack_event["challenge"], 200,
+                              {"content_type": "application/json"})
+     if "event" in slack_event:
+         event_type = slack_event["event"]["type"]
+         return event_handler(event_type, slack_event)
+     return make_response("슬랙 요청에 대한 이벤트가 없습니다.", 404,
+                          {"X-Slack-No-Retry": 1})
 
