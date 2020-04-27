@@ -1,8 +1,11 @@
 from slacker import Slacker
-from flask import Flask, request
+from flask import Flask, request, make_response
 from flask_sqlalchemy import SQLAlchemy
+import json
 import os
 
+from datetime import datetime
+from pytz import timezone
 import requests
 
 token = os.environ['SLACK_TOKEN']
@@ -18,21 +21,194 @@ from models import User, Match
 
 @app.route("/")
 def hello():
-    slack.chat.post_message("#random", "Slacker test")
-    return "Hello World!!"
+    return "Hello! Let's test!"
 
-@app.route("/test/register/<id_>")
-def register(id_):
+
+def register(slack_id, intra_id):
     try:
         user=User(
-            slack_id=id_,
-            intra_id=id_,
+            slack_id=slack_id,
+            intra_id=intra_id,
         )
         db.session.add(user)
         db.session.commit()
         return "Success"
     except Exception as e:
             return(str(e))
+
+
+def get_blocks(value):
+    register_action = {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "42mate 등록하기"
+        },
+        "style": "primary",
+        "value": "register"
+    }
+
+    join_action = {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "내일 만나기"
+        },
+        "style": "primary",
+        "value": "join"
+    }
+
+    unjoin_action = {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "내일 만나지 않기"
+        },
+        "style": "danger",
+        "value": "unjoin"
+    }
+
+    unregister_action = {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "42mate 휴식하기"
+        },
+        "style": "danger",
+        "value": "unregister",
+        "confirm": {
+            "title": {
+                "type": "plain_text",
+                "text": "정말 휴식하시겠어요?"
+            },
+            "text": {
+                "type": "mrkdwn",
+                "text": "언제라도 다시 돌아오세요"
+            },
+            "confirm": {
+                "type": "plain_text",
+                "text": "휴식하기"
+            },
+            "deny": {
+                "type": "plain_text",
+                "text": "더 생각해보기"
+            }
+        }
+    }
+    blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "42MATE에 오신걸 환영합니다!!"
+            }
+        }
+    ]
+    actions = {
+        "type": "actions",
+        "elements": []
+    }
+
+    if value == "register" or value == "registered" or value is None:
+        actions['elements'] = [join_action, unregister_action]
+    elif value == "join" or value == "joined":
+        actions['elements'] = [unjoin_action, unregister_action]
+    elif value == "unjoin" or value == "unjoined":
+        actions['elements'] = [join_action, unregister_action]
+    elif value == "unregister" or value == "unregistered":
+        actions['elements'] = [register_action]
+
+    blocks.append(actions)
+
+    return json.dumps(blocks)
+
+
+@app.route("/slack/command", methods=['POST'])
+def command_view():
+    slack_id = request.form.getlist('user_id')
+    user_name = request.form.getlist('user_name')
+    block_test = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "42MATE에 오신걸 환영합니다!!"
+            }
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": True,
+                        "text": "42mate 등록하기"
+                    },
+                    "style": "primary",
+                    "value": "register"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": True,
+                        "text": "내일 만나기"
+                    },
+                    "style": "primary",
+                    "value": "join"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": True,
+                        "text": "내일 만나지 않기"
+                    },
+                    "style": "danger",
+                    "value": "unjoin"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": True,
+                        "text": "42mate 휴식하기"
+                    },
+                    "style": "danger",
+                    "value": "unregister",
+                    "confirm": {
+                        "title": {
+                            "type": "plain_text",
+                            "text": "정말 휴식하시겠어요?"
+                        },
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "언제라도 다시 돌아오세요"
+                        },
+                        "confirm": {
+                            "type": "plain_text",
+                            "text": "휴식하기"
+                        },
+                        "deny": {
+                            "type": "plain_text",
+                            "text": "더 생각해보기"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+    block = json.dumps(block_test)
+    response = slack.conversations.open(users=slack_id, return_im=True)
+    channel = response.body['channel']['id']
+    if User.query.filter_by(slack_id=slack_id[0]).count():
+        slack.chat.post_message(channel=channel, text="re-visit text", blocks=block)
+    else:
+        register(slack_id[0], user_name[0])
+        slack.chat.post_message(channel=channel, text="first-visit-text", blocks=block)
+    return ("", 200)
+
 
 @app.route("/test/make_match")
 def make_match():
@@ -47,9 +223,11 @@ def make_match():
         )
         db.session.add(match)
         db.session.commit()
-        return "Success"
+        utc = match.match_day
+        return str(utc.astimezone(timezone(os.environ['TIME_ZONE'])))
     except Exception as e:
             return(str(e))
+
 
 @app.route("/test/match_list")
 def match_list():
@@ -58,38 +236,100 @@ def match_list():
     return (match.users, 200)
 
 
-#data = request.get_data()
-@app.route("/slack/command", methods=['POST'])
-def command_main():
-    #data = request.form.getlist('text')
-    #print(data)
-    data = request.get_json(force=True)
-    print(data['text'])
-    # data = request.get_data()
-    #text = data['text']
-    #print(text)
-    #command = parsing(text)
+@app.route("/slack/callback", methods=['POST'])
+def command_callback():
+    data = json.loads(request.form['payload'])
+    action_time = datetime.utcfromtimestamp(int(float(data['actions'][0]['action_ts'])))
+    # 23시 42분 ~ 24시 사이에 callback할 경우 별도 event 없이 return 합니다.
+    if (action_time.hour == 14):
+        if (action_time.minute > 42):
+            return ("", 200)
+    user_id = data['user']['id']
+    user_name = data['user']['username']
+    user_action = data['actions'][0]
+    if user_action['value'] == 'register':
+        register(user_id, user_name)
+    ## 하단은 아직 조건문 밑에 수행될 함수가 구현되지 않아서 주석처리 해뒀습니다.
+    # elif user_action['value'] == 'unregister':
+    #      unregister_user(user_id)
+    # elif user_action['value'] == 'join':
+    #      join_user(user_id)
+    # elif user_aciton['value'] == 'unjoin':
+    #      unjoin_user(user_id)
+    channel = data['channel']['id']
+    # get_blocks함수가 구현되기 전이라 block_test함수를 하드코딩하여 테스트했습니다.
+    # block = get_blocks(data)
+    block_test = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "내일 매칭에 **참가**하셨습니다! 누구와 만나게 될까요~? :)"
+            }
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": True,
+                        "text": "내일 만나지 않기"
+                    },
+                    "style": "danger",
+                    "value": "unjoin"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": True,
+                        "text": "42mate 휴식하기"
+                    },
+                    "style": "danger",
+                    "value": "unregister",
+                    "confirm": {
+                        "title": {
+                            "type": "plain_text",
+                            "text": "정말 휴식하시겠어요?"
+                        },
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "언제라도 다시 돌아오세요"
+                        },
+                        "confirm": {
+                            "type": "plain_text",
+                            "text": "휴식하기"
+                        },
+                        "deny": {
+                            "type": "plain_text",
+                            "text": "더 생각해보기"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+    block = json.dumps(block_test)
+    ts = data['message']['ts']
+    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=block)
+    return ("", 200)
 
-    command = parsing()
-    if command == 'register':
-        register(data)
-    elif command == 'list':
-        list
-
-    return ('', 200)
 
 if __name__ == "__main__":
     app.run()
 
-#
-# @app.route("/slack", methods=["GET", "POST"])
+#슬랙 event subscriber
+# @app.route("/slack/command", methods=["GET", "POST"])
 # def hears():
-#     slack_event = json.loads(request.data)
-#     if "challenge" in slack_event:
-#         return make_response(slack_event["challenge"], 200,
-#                              {"content_type": "application/json"})
-#     if "event" in slack_event:
-#         event_type = slack_event["event"]["type"]
-#         return event_handler(event_type, slack_event)
-#     return make_response("슬랙 요청에 대한 이벤트가 없습니다.", 404,
-#                          {"X-Slack-No-Retry": 1})
+#      slack_event = json.loads(request.data)
+#      if "challenge" in slack_event:
+#          return make_response(slack_event["challenge"], 200,
+#                               {"content_type": "application/json"})
+#      if "event" in slack_event:
+#          event_type = slack_event["event"]["type"]
+#          return event_handler(event_type, slack_event)
+#      return make_response("슬랙 요청에 대한 이벤트가 없습니다.", 404,
+#                           {"X-Slack-No-Retry": 1})
+
