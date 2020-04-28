@@ -34,7 +34,8 @@ def register(slack_id, intra_id):
         db.session.commit()
         return "Success"
     except Exception as e:
-            return(str(e))
+        return(str(e))
+
 
 def unregister_user(slack_id):
     try:
@@ -44,7 +45,8 @@ def unregister_user(slack_id):
         db.session.commit()
         return "Success"
     except Exception as e:
-            return(str(e))
+        return(str(e))
+
 
 def join_user(slack_id):
     try:
@@ -53,7 +55,7 @@ def join_user(slack_id):
         db.session.commit()
         return "Success"
     except Exception as e:
-            return(str(e))
+        return(str(e))
 
 
 def unjoin_user(slack_id):
@@ -63,7 +65,7 @@ def unjoin_user(slack_id):
         db.session.commit()
         return "Success"
     except Exception as e:
-            return(str(e))
+        return(str(e))
 
 
 def get_blocks(value):
