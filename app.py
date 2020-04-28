@@ -181,71 +181,25 @@ def command_callback():
     user_action = data['actions'][0]
     if user_action['value'] == 'register':
         register(user_id, user_name)
-    ## 하단은 아직 조건문 밑에 수행될 함수가 구현되지 않아서 주석처리 해뒀습니다.
-    # elif user_action['value'] == 'unregister':
-    #      unregister_user(user_id)
+    #elif user_action['value'] == 'unregister':
+    #    unregister_user(user_id)
     # elif user_action['value'] == 'join':
     #      join_user(user_id)
-    # elif user_aciton['value'] == 'unjoin':
-    #      unjoin_user(user_id)
+    #elif user_aciton['value'] == 'unjoin':
+    #    unjoin_user(user_id)
     channel = data['channel']['id']
-    # get_blocks함수가 구현되기 전이라 block_test함수를 하드코딩하여 테스트했습니다.
-    # block = get_blocks(data)
-    block_test = [
+    # 한글에 markdown 적용하는 방법 확인
+    success_message = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "내일 매칭에 **참가**하셨습니다! 누구와 만나게 될까요~? :)"
+                "text": user_action['value'] + "가 *성공*적으로 수행되었습니다!"
             }
-        },
-        {
-            "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": True,
-                        "text": "내일 만나지 않기"
-                    },
-                    "style": "danger",
-                    "value": "unjoin"
-                },
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": True,
-                        "text": "42mate 휴식하기"
-                    },
-                    "style": "danger",
-                    "value": "unregister",
-                    "confirm": {
-                        "title": {
-                            "type": "plain_text",
-                            "text": "정말 휴식하시겠어요?"
-                        },
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "언제라도 다시 돌아오세요"
-                        },
-                        "confirm": {
-                            "type": "plain_text",
-                            "text": "휴식하기"
-                        },
-                        "deny": {
-                            "type": "plain_text",
-                            "text": "더 생각해보기"
-                        }
-                    }
-                }
-            ]
         }
     ]
-    block = json.dumps(block_test)
     ts = data['message']['ts']
-    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=block)
+    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(success_message))
     return ("", 200)
 
 
