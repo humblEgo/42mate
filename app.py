@@ -124,7 +124,18 @@ def get_blocks(value):
 
 
 def get_user_state(slack_id):
-    return None
+    if isinstance(slack_id, list):
+        slack_id = slack_id[0]
+    user = User.query.filter_by(slack_id=slack_id).first()
+    if user is None:
+        return None
+    if user.register is True:
+        if user.joined is True:
+            return "joined"
+        else:
+            return "unjoined"
+    else:
+        return "unregistered"
 
 
 @app.route("/slack/command", methods=['POST'])
