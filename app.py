@@ -184,32 +184,6 @@ def command_view():
     return ("", 200)
 
 
-@app.route("/test/make_match")
-def make_match():
-    users = User.query.all()
-    print(users)
-    print(users[0])
-    print(users[1])
-    try:
-        match=Match(
-            user1 = users[0],
-            user2 = users[1]
-        )
-        db.session.add(match)
-        db.session.commit()
-        utc = match.match_day
-        return str(utc.astimezone(timezone(os.environ['TIME_ZONE'])))
-    except Exception as e:
-            return(str(e))
-
-
-@app.route("/test/match_list")
-def match_list():
-    match = Match.query.all()[0]
-    print(match.users)
-    return (match.users, 200)
-
-
 @app.route("/slack/callback", methods=['POST'])
 def command_callback():
     data = json.loads(request.form['payload'])
