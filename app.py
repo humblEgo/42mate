@@ -24,13 +24,23 @@ def hello():
     return "Hello! Let's test!"
 
 
-def register(slack_id, intra_id):
+def create_user(slack_id, intra_id):
     try:
         user=User(
             slack_id=slack_id,
             intra_id=intra_id,
         )
         db.session.add(user)
+        db.session.commit()
+        return "Success"
+    except Exception as e:
+        return(str(e))
+
+
+def register_user(slack_id):
+    try:
+        user = User.query.filter_by(slack_id = slack_id).first()
+        user.register = True
         db.session.commit()
         return "Success"
     except Exception as e:
@@ -173,13 +183,12 @@ def get_user_state(slack_id):
 def command_view():
     slack_id = request.form.getlist('user_id')
     user_name = request.form.getlist('user_name')
-
     user_state = get_user_state(slack_id)
     blocks = get_blocks(user_state)
     response = slack.conversations.open(users=slack_id, return_im=True)
     channel = response.body['channel']['id']
     if user_state is None:  # 처음 등록했을 경우
-        register(slack_id[0], user_name[0])
+        create_user(slack_id[0], user_name[0])
     slack.chat.post_message(channel=channel, blocks=blocks)
     return ("", 200)
 
@@ -218,17 +227,17 @@ def command_callback():
     if (action_time.hour == 14):
         if (action_time.minute > 42):
             return ("", 200)
-    user_id = data['user']['id']
+    user_slack_id = data['user']['id']
     user_name = data['user']['username']
     user_action = data['actions'][0]
     if user_action['value'] == 'register':
-        register(user_id, user_name)
+        register_user(user_slack_id)
     elif user_action['value'] == 'unregister':
-        unregister_user(user_id)
+        unregister_user(user_slack_id)
     elif user_action['value'] == 'join':
-        join_user(user_id)
+        join_user(user_slack_id)
     elif user_action['value'] == 'unjoin':
-        unjoin_user(user_id)
+        unjoin_user(user_slack_id)
     channel = data['channel']['id']
     # 한글에 markdown 적용하는 방법 확인
     success_message = [
