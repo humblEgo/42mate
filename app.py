@@ -36,6 +36,35 @@ def register(slack_id, intra_id):
     except Exception as e:
             return(str(e))
 
+def unregister_user(slack_id):
+    try:
+        user = User.query.filter_by(slack_id = slack_id).first()
+        user.register = False
+        user.joined = False
+        db.session.commit()
+        return "Success"
+    except Exception as e:
+            return(str(e))
+
+def join_user(slack_id):
+    try:
+        user = User.query.filter_by(slack_id = slack_id).first()
+        user.joined = True
+        db.session.commit()
+        return "Success"
+    except Exception as e:
+            return(str(e))
+
+
+def unjoin_user(slack_id):
+    try:
+        user = User.query.filter_by(slack_id = slack_id).first()
+        user.joined = False
+        db.session.commit()
+        return "Success"
+    except Exception as e:
+            return(str(e))
+
 
 def get_blocks(value):
     register_action = {
@@ -181,12 +210,12 @@ def command_callback():
     user_action = data['actions'][0]
     if user_action['value'] == 'register':
         register(user_id, user_name)
-    #elif user_action['value'] == 'unregister':
-    #    unregister_user(user_id)
-    # elif user_action['value'] == 'join':
-    #      join_user(user_id)
-    #elif user_aciton['value'] == 'unjoin':
-    #    unjoin_user(user_id)
+    elif user_action['value'] == 'unregister':
+        unregister_user(user_id)
+    elif user_action['value'] == 'join':
+        join_user(user_id)
+    elif user_action['value'] == 'unjoin':
+        unjoin_user(user_id)
     channel = data['channel']['id']
     # 한글에 markdown 적용하는 방법 확인
     success_message = [
