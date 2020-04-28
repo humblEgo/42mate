@@ -42,7 +42,7 @@ class Match(db.Model):
     users = db.relationship(User, secondary=user_identifier, backref='matches')
 
     def __init__(self, user1, user2):
-        self.match_day = datetime.now()
+        self.match_day = datetime.now(timezone(os.environ['TIME_ZONE']))
         self.users.append(user1)
         self.users.append(user2)
 
