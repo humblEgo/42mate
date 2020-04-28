@@ -18,6 +18,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 from models import User, Match
+#from scheduled_actions import make_match
 
 @app.route("/")
 def hello():
@@ -226,6 +227,11 @@ def command_callback():
     ts = data['message']['ts']
     slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(success_message))
     return ("", 200)
+
+# @app.route("/slack/match_test", methods=['POST'])
+# def match_test():
+#     make_match()
+#     return ("", 200)
 
 
 if __name__ == "__main__":
