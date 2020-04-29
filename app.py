@@ -45,7 +45,7 @@ def send_direct_message(form):
     dm_channel = response.body['channel']['id']
     if user_state is None:  # 처음 등록했을 경우
         create_user(slack_id, user_name)
-    slack.chat.post_message(channel=dm_channel, blocks=blocks)
+    slack.chat.post_message(channel=dm_channel, blocks=json.dumps(blocks))
 
 
 @app.route("/slack/command", methods=['POST'])
