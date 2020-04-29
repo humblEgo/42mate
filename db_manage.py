@@ -31,7 +31,7 @@ def unregister_user(slack_id):
         user.register = False
         user.joined = False
         db.session.commit()
-        print(slack_id + "unregister Successfully")
+        print(slack_id + " unregister Successfully")
     except Exception as e:
         print(str(e))
 
@@ -41,7 +41,7 @@ def join_user(slack_id):
         user = User.query.filter_by(slack_id=slack_id).first()
         user.joined = True
         db.session.commit()
-        print(slack_id + "join Successfully")
+        print(slack_id + " join Successfully")
     except Exception as e:
         print(str(e))
 
@@ -51,7 +51,7 @@ def unjoin_user(slack_id):
         user = User.query.filter_by(slack_id=slack_id).first()
         user.joined = False
         db.session.commit()
-        print(slack_id + "unjoin Successfully")
+        print(slack_id + " unjoin Successfully")
     except Exception as e:
         print(str(e))
 
