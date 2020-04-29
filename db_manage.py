@@ -45,6 +45,7 @@ def join_user(slack_id):
         print("Success")
         return "Success"
     except Exception as e:
+        print(str(e))
         return(str(e))
 
 
