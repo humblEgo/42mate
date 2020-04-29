@@ -6,7 +6,7 @@ import os
 
 from datetime import datetime
 import requests
-from blocks import get_commnad_view_blocks, get_base_blocks
+from blocks import get_command_view_blocks, get_base_blocks
 
 token = os.environ['SLACK_TOKEN']
 slack = Slacker(token)
@@ -40,7 +40,7 @@ def send_direct_message(form):
     slack_id = form.getlist('user_id')[0]
     user_name = form.getlist('user_name')[0]
     user_state = get_user_state(slack_id)
-    blocks = get_blocks(user_state)
+    blocks = get_command_view_blocks(user_state)
     response = slack.conversations.open(users=[slack_id], return_im=True)
     dm_channel = response.body['channel']['id']
     if user_state is None:  # 처음 등록했을 경우
