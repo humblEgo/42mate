@@ -53,6 +53,7 @@ def match_successed_handling(matches):
     return ("", 200)
 
 def make_match():
+    print("MAKE MATCH START")
     unmatched_users = User.query.filter_by(joined=True).all()
     matched_groups = []
     matches = []
@@ -79,6 +80,6 @@ def make_match():
     db.session.commit()
     return ("", 200)
 
-sched.add_job(make_match, 'cron', hour=15)
+sched.add_job(make_match, 'cron', hour=15, minute=00)
 
 sched.start()
