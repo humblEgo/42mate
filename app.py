@@ -5,7 +5,6 @@ import json
 import os
 
 from datetime import datetime
-from pytz import timezone
 import requests
 
 token = os.environ['SLACK_TOKEN']
@@ -18,7 +17,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 from models import User, Match
-#from scheduled_actions import make_match
 
 @app.route("/")
 def hello():
@@ -179,18 +177,33 @@ def get_user_state(slack_id):
     else:
         return "unregistered"
 
+def get_base_blocks(text)
+    blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": text
+            }
+        }
+    ]
+    return blocks
 
 @app.route("/slack/command", methods=['POST'])
 def command_view():
     slack_id = request.form.getlist('user_id')
     user_name = request.form.getlist('user_name')
-    user_state = get_user_state(slack_id)
-    blocks = get_blocks(user_state)
-    response = slack.conversations.open(users=slack_id, return_im=True)
-    channel = response.body['channel']['id']
-    if user_state is None:  # 처음 등록했을 경우
-        create_user(slack_id[0], user_name[0])
-    slack.chat.post_message(channel=channel, blocks=blocks)
+    command_time = datetime.utcnow()
+    if command_time.hour == 8 and command_time.minute > 20: #14, 42
+        blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
+    else:
+        user_state = get_user_state(slack_id)
+        blocks = get_blocks(user_state)
+        response = slack.conversations.open(users=slack_id, return_im=True)
+        channel = response.body['channel']['id']
+        if user_state is None:  # 처음 등록했을 경우
+            create_user(slack_id[0], user_name[0])
+        slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     return ("", 200)
 
 
