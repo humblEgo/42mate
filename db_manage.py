@@ -1,4 +1,5 @@
 from models import User, Match
+from app import db
 
 
 def create_user(slack_id, intra_id):
