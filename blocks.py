@@ -11,7 +11,7 @@ def get_base_blocks(text):
     return base_block
 
 
-def get_commad_view_blocks(value):
+def get_command_view_blocks(value):
     register_action = {
         "type": "button",
         "text": {
