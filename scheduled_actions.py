@@ -3,42 +3,23 @@ from app import db, slack
 from models import User, Match
 from random import sample
 import json
+from blocks import get_base_blocks
 
 sched = BlockingScheduler()
 
-def get_blocks(match_status, users):
-    if match_status == "MATCH_SUCCESSED":
-        blocks = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "MATCH SUCCESSED WITH " + str(users[0].intra_id) + " and " + str(users[1].intra_id) + "!"
-                }
-            }
-        ]
-    elif match_status == "MATCH_FAILED":
-        blocks = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "MATCH FAILED. SORRY, " + str(users[0].intra_id) + "!"
-                }
-            }
-        ]
-    return json.dumps(blocks)
 
 def match_failed_handling(unmatched_user):
     slack_id = unmatched_user.slack_id
+    intra_id = unmatched_user.intra_id
     response = slack.conversations.open(users=slack_id, return_im=True)
     channel = response.body['channel']['id']
-    blocks = get_blocks("MATCH_FAILED", [unmatched_user])
-    slack.chat.post_message(channel=channel, blocks=blocks)
+    blocks = get_base_blocks("MATCH FAILED. SORRY, " + str(intra_id) + "!")
+    slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     print("MATCH FAILED HANDLING")
     print("_SLACK_ID: " + str(slack_id))
     print("_BLOCK: " + str(blocks))
     return ("", 200)
+
 
 def match_successed_handling(matches):
     print("MATCH SUCCESSED HANDLING")
@@ -47,10 +28,11 @@ def match_successed_handling(matches):
         print("_SLACK_ID: " + str(slack_id[0]) + " & " + str(slack_id[1]))
         response = slack.conversations.open(users=slack_id, return_im=True)
         channel = response.body['channel']['id']
-        blocks = get_blocks("MATCH_SUCCESSED", match.users)
+        blocks = get_base_blocks("MATCH SUCCESSED WITH " + str(match.users[0].intra_id) + " and " + str(match.users[1].intra_id) + "!")
         print("_BLOCK: " + str(blocks))
-        slack.chat.post_message(channel=channel, blocks=blocks)
+        slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     return ("", 200)
+
 
 def make_match():
     print("MAKE MATCH START")
