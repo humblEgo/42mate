@@ -59,9 +59,10 @@ def send_direct_message(form):
 def command_main():
     form = request.form
     service_enable_time = not is_readytime()
-    send_eph_message(form, service_enable_time)
     if service_enable_time:
         send_direct_message(form)
+    if not(service_enable_time and form.getlist('channel_name')[0] == "directmessage"):
+        send_eph_message(form, service_enable_time)
     return ("", 200)
 
 
