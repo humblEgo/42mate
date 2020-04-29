@@ -33,13 +33,13 @@ def is_readytime():
     return False
 
 
-def send_eph_message(form):
+def send_eph_message(form, service_enable_time):
     slack_id = form.getlist('user_id')[0]
     call_channel = form.getlist('channel_id')
-    if is_readytime():
-        eph_blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
-    else:
+    if service_enable_time:
         eph_blocks = get_base_blocks("디엠을 확인해주세요!")
+    else:
+        eph_blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
     slack.chat.post_ephemeral(channel=call_channel, text="", user=[slack_id], blocks=json.dumps(eph_blocks))
 
 
@@ -57,10 +57,11 @@ def send_direct_message(form):
 
 @app.route("/slack/command", methods=['POST'])
 def command_main():
-    send_eph_message(request.form)
-    if not is_readytime():
-        # TODO HOUR TO 14, MINUTE TO 42
-        send_direct_message(request.form)
+    form = request.form
+    service_enable_time = not is_readytime()
+    send_eph_message(form, service_enable_time)
+    if service_enable_time:
+        send_direct_message(form)
     return ("", 200)
 
 
@@ -77,20 +78,24 @@ def change_user_state_by_action(data):
         unjoin_user(user_slack_id)
 
 
+def update_command_view(data, service_enable_time):
+    ts = data['message']['ts']
+    channel = data['channel']['id']
+    user_action = data['actions'][0]
+    if service_enable_time:
+        update_message = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!")
+    else:
+        update_message = get_base_blocks("지금은 매칭을 준비중입니다.")
+    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_message))
+
+
 @app.route("/slack/callback", methods=['POST'])
 def command_callback():
     data = json.loads(request.form['payload'])
-    ts = data['message']['ts']
-    if is_readytime():
-        readytime_message = get_base_blocks("지금은 매칭을 준비중입니다.")
-        slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(readytime_message))
-        return ("", 200)
-    change_user_state_by_action(data)
-    channel = data['channel']['id']
-    # 한글에 markdown 적용하는 방법 확인
-    success_message = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!")
-    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(success_message))
-
+    service_enable_time = not is_readytime()
+    update_command_view(data, service_enable_time)
+    if service_enable_time:
+        change_user_state_by_action(data)
     return ("", 200)
 
 
