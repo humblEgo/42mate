@@ -3,9 +3,11 @@ from app import db, slack
 from models import User, Match
 from random import sample
 import json
-from blocks import get_base_blocks
+from blocks import get_base_blocks, get_evaluation_blocks
+from sqlalchemy import extract
+from datetime import datetime
 
-sched = BlockingScheduler()
+#sched = BlockingScheduler()
 
 
 def match_failed_handling(unmatched_user):
@@ -62,6 +64,19 @@ def make_match():
     db.session.commit()
     return ("", 200)
 
-sched.add_job(make_match, 'cron', hour=15, minute=00)
 
-sched.start()
+def send_evaluation():
+    blocks = json.dumps(get_evaluation_blocks())
+    matches = db.session.query(Match).filter(extract('day', Match.match_day) == datetime.utcnow().day).all()
+    for match in matches:
+        for i in range(2):
+            slack_id = match.users[i].slack_id
+            response = slack.conversations.open(users=slack_id, return_im=True)
+            channel = response.body['channel']['id']
+            slack.chat.post_message(channel=channel, blocks=blocks)
+
+send_evaluation()
+#sched.add_job(send_evaluation, 'cron', hour=3)
+#sched.add_job(make_match, 'cron', hour=15)
+
+#sched.start()

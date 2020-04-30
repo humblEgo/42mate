@@ -87,3 +87,66 @@ def get_command_view_blocks(value):
     blocks.append(actions)
 
     return blocks
+
+
+def get_evaluation_blocks():
+    evaluation_blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "오늘 메이트와의 시간은 얼마나 만족스러우셨나요? :ghost:"
+            }
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star:",
+                        "emoji": true
+                    },
+                    "value": "10"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star:",
+                        "emoji": true
+                    },
+                    "value": "20"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star:",
+                        "emoji": true
+                    },
+                    "value": "30"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star::star:",
+                        "emoji": true
+                    },
+                    "value": "40"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star::star::star:",
+                        "emoji": true
+                    },
+                    "value": "50"
+                }
+            ]
+        }
+    ]
+    return evaluation_blocks
