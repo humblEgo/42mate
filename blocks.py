@@ -1,3 +1,5 @@
+from db_manage import is_overlap_evaluation
+
 def get_base_blocks(text):
     base_block = [
         {
@@ -9,6 +11,14 @@ def get_base_blocks(text):
         }
     ]
     return base_block
+
+
+def get_eval_callback_blocks(data):
+    if is_overlap_evaluation(data):
+        blocks = get_base_blocks("오늘의 설문에 대해 이미 응답하셨습니다.")
+    else:
+        blocks = get_base_blocks("응답해주셔서 감사합니다.")
+    return blocks
 
 
 def get_command_view_blocks(value):
