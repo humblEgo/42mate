@@ -70,12 +70,13 @@ def send_evaluation():
     matches = db.session.query(Match).filter(extract('day', Match.match_day) == datetime.utcnow().day).all()
     for match in matches:
         for i in range(2):
-            slack_id = match.users[i].slack_id
-            response = slack.conversations.open(users=slack_id, return_im=True)
-            channel = response.body['channel']['id']
-            slack.chat.post_message(channel=channel, blocks=blocks)
+            if match.users[i].intra_id == 'eunhkim':
+                slack_id = match.users[i].slack_id
+                response = slack.conversations.open(users=slack_id, return_im=True)
+                channel = response.body['channel']['id']
+                slack.chat.post_message(channel=channel, blocks=blocks)
 
-send_evaluation()
+#send_evaluation()
 #sched.add_job(send_evaluation, 'cron', hour=3)
 #sched.add_job(make_match, 'cron', hour=15)
 

@@ -3,6 +3,8 @@ from datetime import datetime
 from pytz import timezone
 import os
 
+from sqlalchemy import ForeignKey
+
 user_identifier = db.Table('user_identifier',
     db.Column('user_index', db.Integer, db.ForeignKey('users.index')),
     db.Column('match_index', db.Integer, db.ForeignKey('matches.index'))
@@ -49,12 +51,38 @@ class Match(db.Model):
     def __repr__(self):
         return '<match_day: {}, user1_intra_id: {}, user2_intra_id: {}>'.format(self.match_day, self.users[0].intra_id,
                                                                                 self.users[1].intra_id)
-
     def serialize(self):
         return {
             'match_day': self.match_day,
             'user1_intra_id': self.users[0].intra_id,
             'user2_intra_id': self.uesrs[1].intra_id,
+        }
+
+class Evaluation(db.Model):
+    __tablename__ = 'evaluations'
+    index = db.Column(db.Integer, primary_key=True)
+    match_index = db.Column(db.Integer, ForeignKey('matches.index'))
+    match = db.relationship(Match, foreign_keys=[match_index], backref='evaluations')
+    user_index = db.Column(db.Integer, ForeignKey('users.index'))
+    user = db.relationship(User, foreign_keys=[user_index], backref='evaluations')
+    mate_index = db.Column(db.Integer, ForeignKey('users.index'))
+    mate = db.relationship(User, foreign_keys=[mate_index], backref='evaluations')
+    satisfaction = db.Column(db.Integer)
+
+    def __init__(self, match, user, mate, satisfaction):
+        self.match = match
+        self.user = user
+        self.mate = mate
+        self.satisfaction = satisfaction
+
+    def __repr__(self):
+        return '<match: {}, user: {}, mate: {}>'.format(self.match.match_day, self.user.intra_id, self.mate.intra_id)
+
+    def serialize(self):
+        return {
+            'match': self.match.match_day,
+            'user': self.user.intra_id,
+            'mate': self.mate.intra_id,
         }
 
 
