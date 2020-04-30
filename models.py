@@ -64,9 +64,9 @@ class Evaluation(db.Model):
     match_index = db.Column(db.Integer, ForeignKey('matches.index'))
     match = db.relationship(Match, foreign_keys=[match_index], backref='evaluations')
     user_index = db.Column(db.Integer, ForeignKey('users.index'))
-    user = db.relationship(User, foreign_keys=[user_index], backref='evaluations')
+    user = db.relationship(User, foreign_keys=[user_index], backref='active_evaluations')
     mate_index = db.Column(db.Integer, ForeignKey('users.index'))
-    mate = db.relationship(User, foreign_keys=[mate_index], backref='evaluations')
+    mate = db.relationship(User, foreign_keys=[mate_index], backref='passive_evaluations')
     satisfaction = db.Column(db.Integer)
 
     def __init__(self, match, user, mate, satisfaction):
