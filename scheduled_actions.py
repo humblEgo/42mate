@@ -9,17 +9,15 @@ import json
 sched = BlockingScheduler()
 
 
-
 def match_failed_handling(unmatched_user):
     slack_id = unmatched_user.slack_id
     intra_id = unmatched_user.intra_id
-    #response = slack.conversations.open(users=slack_id, return_im=True)
-    #channel = response.body['channel']['id']
-    #blocks = get_base_blocks("MATCH FAILED. SORRY, " + str(intra_id) + "!")
-    #slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
+    response = slack.conversations.open(users=slack_id, return_im=True)
+    channel = response.body['channel']['id']
+    blocks = get_base_blocks("MATCH FAILED. SORRY, " + str(intra_id) + "!")
+    slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     print("MATCH FAILED HANDLING")
     print("_SLACK_ID: " + str(slack_id))
-    #print("_BLOCK: " + str(blocks))
     return ("", 200)
 
 
@@ -28,11 +26,10 @@ def match_successed_handling(matches):
     for match in matches:
         slack_id = [match.users[0].slack_id, match.users[1].slack_id]
         print("_SLACK_ID: " + str(slack_id[0]) + " & " + str(slack_id[1]))
-        #response = slack.conversations.open(users=slack_id, return_im=True)
-        #channel = response.body['channel']['id']
-        #blocks = get_base_blocks("MATCH SUCCESSED WITH " + str(match.users[0].intra_id) + " and " + str(match.users[1].intra_id) + "!")
-        #print("_BLOCK: " + str(blocks))
-        #slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
+        response = slack.conversations.open(users=slack_id, return_im=True)
+        channel = response.body['channel']['id']
+        blocks = get_base_blocks("MATCH SUCCESSED WITH " + str(match.users[0].intra_id) + " and " + str(match.users[1].intra_id) + "!")
+        slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     return ("", 200)
 
 
@@ -78,8 +75,8 @@ def make_match():
         )
         matches.append(match)
     match_successed_handling(matches)
-    #db.session.add_all(matches)
-    #db.session.commit()
+    db.session.add_all(matches)
+    db.session.commit()
     return ("", 200)
 
 
