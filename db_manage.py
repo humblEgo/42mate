@@ -85,6 +85,7 @@ def create_evaluation(data):
     user_slack_id = data['user']['id']
     user = User.query.filter_by(slack_id=user_slack_id).first()
     match = Match.query.filter(Match.users.contains(user)).first()
+    #TO DO: NEEDS REFACTORING
     mate_slack_id = next((mate.slack_id for mate in match.users if mate.slack_id != user_slack_id), None)
     mate = User.query.filter_by(slack_id=mate_slack_id).first()
     satisfaction = int(data['actions'][0]['value'])

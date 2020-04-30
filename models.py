@@ -2,7 +2,6 @@ from app import db
 from datetime import datetime
 from pytz import timezone
 import os
-
 from sqlalchemy import ForeignKey
 
 user_identifier = db.Table('user_identifier',
