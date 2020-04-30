@@ -72,6 +72,7 @@ def get_command_view_blocks(value):
     blocks = get_base_blocks("42MATE에 오신걸 환영합니다!!")
     actions = {
         "type": "actions",
+        "block_id": "command_view_blocks",
         "elements": []
     }
 
@@ -100,6 +101,7 @@ def get_evaluation_blocks():
         },
         {
             "type": "actions",
+            "block_id": "evaluation_blocks",
             "elements": [
                 {
                     "type": "button",
@@ -129,6 +131,7 @@ def get_evaluation_blocks():
                     "value": "30"
                 },
                 {
+                    "action_id": "evaluation",
                     "type": "button",
                     "text": {
                         "type": "plain_text",

@@ -79,12 +79,15 @@ def change_user_state_by_action(data):
         unjoin_user(user_slack_id)
 
 
-def update_command_view(data, service_enable_time):
+def update_command_view(data, callback_blocks, service_enable_time):
     ts = data['message']['ts']
     channel = data['channel']['id']
     user_action = data['actions'][0]
     if service_enable_time:
-        update_message = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!")
+        if callback_blocks == "command_view_blocks":
+            update_message = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!")
+        elif callback_blocks == "evaluation_blocks":
+            update_message = get_base_blocks("응답해주셔서 감사합니다.")
     else:
         update_message = get_base_blocks("지금은 매칭을 준비중입니다.")
     slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_message))
@@ -93,10 +96,15 @@ def update_command_view(data, service_enable_time):
 @app.route("/slack/callback", methods=['POST'])
 def command_callback():
     data = json.loads(request.form['payload'])
+    callback_blocks = data['actions'][0]['block_id']
     service_enable_time = not is_readytime()
-    update_command_view(data, service_enable_time)
+    update_command_view(data, callback_blocks, service_enable_time)
     if service_enable_time:
-        change_user_state_by_action(data)
+        if callback_blocks == "command_view_blocks":
+            change_user_state_by_action(data)
+        elif callback_blocks == "evaluation_blocks":
+            pass
+            #create_evaluation(data)
     return ("", 200)
 
 
