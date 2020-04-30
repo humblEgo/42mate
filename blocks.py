@@ -106,7 +106,7 @@ def get_evaluation_blocks():
                     "text": {
                         "type": "plain_text",
                         "text": ":star:",
-                        "emoji": true
+                        "emoji": True
                     },
                     "value": "10"
                 },
@@ -115,7 +115,7 @@ def get_evaluation_blocks():
                     "text": {
                         "type": "plain_text",
                         "text": ":star::star:",
-                        "emoji": true
+                        "emoji": True
                     },
                     "value": "20"
                 },
@@ -124,7 +124,7 @@ def get_evaluation_blocks():
                     "text": {
                         "type": "plain_text",
                         "text": ":star::star::star:",
-                        "emoji": true
+                        "emoji": True
                     },
                     "value": "30"
                 },
@@ -133,7 +133,7 @@ def get_evaluation_blocks():
                     "text": {
                         "type": "plain_text",
                         "text": ":star::star::star::star:",
-                        "emoji": true
+                        "emoji": True
                     },
                     "value": "40"
                 },
@@ -142,7 +142,7 @@ def get_evaluation_blocks():
                     "text": {
                         "type": "plain_text",
                         "text": ":star::star::star::star::star:",
-                        "emoji": true
+                        "emoji": True
                     },
                     "value": "50"
                 }
