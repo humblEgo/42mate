@@ -20,7 +20,6 @@ def match_failed_handling(unmatched_user):
     print("MATCH FAILED HANDLING")
     print("_SLACK_ID: " + str(slack_id))
     print("_BLOCK: " + str(blocks))
-    return ("", 200)
 
 
 def match_successed_handling(matches):
@@ -33,7 +32,6 @@ def match_successed_handling(matches):
         blocks = get_base_blocks("MATCH SUCCESSED WITH " + str(match.users[0].intra_id) + " and " + str(match.users[1].intra_id) + "!")
         print("_BLOCK: " + str(blocks))
         slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
-    return ("", 200)
 
 
 def make_match():
@@ -62,7 +60,6 @@ def make_match():
     match_successed_handling(matches)
     db.session.add_all(matches)
     db.session.commit()
-    return ("", 200)
 
 
 def send_evaluation():
