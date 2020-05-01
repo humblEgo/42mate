@@ -16,8 +16,8 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-from blocks import get_command_view_blocks, get_base_blocks, get_eval_callback_blocks
-from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, create_evaluation
+from blocks import get_command_view_blocks, get_base_blocks
+from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, create_evaluation, is_overlap_evaluation
 from scheduled_actions import make_match
 
 @app.route("/")
@@ -87,7 +87,10 @@ def update_command_view(data, input_blocks_type, service_enable_time):
         if input_blocks_type == "command_view_blocks":
             update_blocks = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!") #추후 get_cmnd_view_callback_blocks 로 변경 예정
         elif input_blocks_type == "evaluation_blocks":
-            update_blocks = get_eval_callback_blocks(data)
+            if is_overlap_evaluation(data):
+                blocks = get_base_blocks("오늘의 설문에 대해 이미 응답하셨습니다.")
+            else:
+                blocks = get_base_blocks("응답해주셔서 감사합니다.")
     else:
         update_blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
     slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_blocks))
