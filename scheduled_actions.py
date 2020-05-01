@@ -1,9 +1,10 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from app import db, slack
-from models import User, Match, Activity
-from random import sample
-import json
 from blocks import get_base_blocks, get_match_blocks
+from models import User, Match, user_identifier, Activity
+from random import sample
+from sqlalchemy import func, text
+import json
 
 sched = BlockingScheduler()
 
@@ -17,7 +18,6 @@ def match_failed_handling(unmatched_user):
     slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     print("MATCH FAILED HANDLING")
     print("_SLACK_ID: " + str(slack_id))
-    print("_BLOCK: " + str(blocks))
     return ("", 200)
 
 
@@ -35,17 +35,35 @@ def match_successed_handling(matches):
     return ("", 200)
 
 
+def get_matched_group(unmatched_users, unused_matches):
+    user = unmatched_users[0]
+    unmatched_users.remove(user)
+    for i in range(len(unmatched_users)):
+        mate = sample(unmatched_users, 1)[0]
+        ret = 0
+        for match in unused_matches:
+            if set([user, mate]).issubset(match.users):
+                ret = 1
+                break
+        if ret == 0 or (i == len(unmatched_users) - 1):
+            unmatched_users.remove(mate)
+            matched_group = [user, mate]
+            for match in unused_matches:
+                if any(user in matched_group for user in match.users):
+                    unused_matches.remove(match)
+            return matched_group
+
+
 def make_match():
     print("MAKE MATCH START")
-    unmatched_users = User.query.filter_by(joined=True).all()
+    unmatched_users = db.session.query(User).join(user_identifier)\
+        .group_by(User).order_by(func.count(user_identifier.c.user_index)).all()
+    unused_matches = db.session.query(Match).all()
     matched_groups = []
     matches = []
     count_unmatched_users = len(unmatched_users)
     while count_unmatched_users >= 2:
-        matched_group = sample(unmatched_users, 2)
-        matched_groups += [matched_group]
-        for i in range(2):
-            unmatched_users.remove(matched_group[i])
+        matched_groups += [get_matched_group(unmatched_users, unused_matches)]
         count_unmatched_users -= 2
     if count_unmatched_users == 1:
         unmatched_users[0].joined = False
@@ -64,19 +82,6 @@ def make_match():
     return ("", 200)
 
 
-match = Match.query.filter_by(index=81).first()
-slack_id = [match.users[0].slack_id, match.users[1].slack_id]
-if (match.users[0].intra_id == 'eunhkim'):
-    slack_id = match.uesrs[0].slack_id
-else:
-    slack_id = match.users[1].slack_id
-response = slack.conversations.open(users=slack_id, return_im=True)
-channel = response.body['channel']['id']
-activities = Activity.query.all()
-blocks = get_match_blocks(match.users, activities)
-slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
+sched.add_job(make_match, 'cron', hour=15, minute=00)
 
-
-#sched.add_job(make_match, 'cron', hour=15, minute=00)
-
-#sched.start()
+sched.start()
