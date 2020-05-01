@@ -87,3 +87,21 @@ def get_command_view_blocks(value):
     blocks.append(actions)
 
     return blocks
+
+
+def get_match_blocks(users, activity):
+    text = "따-단! *" + users[0].intra_id + "* 님과 *" + users[1].intra_id + "* 님은 오늘의 메이트입니다. \n" \
+        + "온라인 미션과 함께 서로에 대해 알아가며 흥미로운 시간을 만들어보세요. \n" \
+        + "곧 클러스터에서 만나면 반갑게 인사할 수 있게요!"
+    blocks = get_base_blocks(text)
+    blocks.append({"type": "divider"})
+    content = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*우리를 가깝게 만들 온라인 미션 : " + activity.subject + "* :sunglasses:\n" + activity.content
+            }
+    }
+    blocks.append(content)
+    blocks.append({"type": "divider"})
+    return blocks
