@@ -59,22 +59,23 @@ class Match(db.Model):
 
 class Evaluation(db.Model):
     __tablename__ = 'evaluations'
+
     index = db.Column(db.Integer, primary_key=True)
-    react_time = db.Column(db.DateTime)
+    react_time = db.Column(db.DateTime, nullable=True)
     match_index = db.Column(db.Integer, ForeignKey('matches.index'))
     match = db.relationship(Match, foreign_keys=[match_index], backref='evaluations')
     user_index = db.Column(db.Integer, ForeignKey('users.index'))
     user = db.relationship(User, foreign_keys=[user_index], backref='active_evaluations')
     mate_index = db.Column(db.Integer, ForeignKey('users.index'))
     mate = db.relationship(User, foreign_keys=[mate_index], backref='passive_evaluations')
-    test_satisfaction = db.Column(db.Integer, nullable=True)
+    satisfaction = db.Column(db.Integer, nullable=True)
 
     def __init__(self, match, user, mate):
-        self.react_time = datetime.utcnow()
+        self.react_time = None
         self.match = match
         self.user = user
         self.mate = mate
-        self.test_satisfaction = None
+        self.satisfaction = None
 
     def __repr__(self):
         return '<react_time: {}, match: {}, user: {}, mate: {}>'.format(self.react_time, self.match.match_day, self.user.intra_id, self.mate.intra_id)
