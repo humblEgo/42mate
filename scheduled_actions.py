@@ -1,9 +1,9 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from app import db, slack
-from models import User, Match
+from models import User, Match, Activity
 from random import sample
 import json
-from blocks import get_base_blocks
+from blocks import get_base_blocks, get_match_blocks
 
 sched = BlockingScheduler()
 
@@ -23,13 +23,14 @@ def match_failed_handling(unmatched_user):
 
 def match_successed_handling(matches):
     print("MATCH SUCCESSED HANDLING")
+    activities = Activity.query.all()
     for match in matches:
         slack_id = [match.users[0].slack_id, match.users[1].slack_id]
         print("_SLACK_ID: " + str(slack_id[0]) + " & " + str(slack_id[1]))
         response = slack.conversations.open(users=slack_id, return_im=True)
         channel = response.body['channel']['id']
-        blocks = get_base_blocks("MATCH SUCCESSED WITH " + str(match.users[0].intra_id) + " and " + str(match.users[1].intra_id) + "!")
-        print("_BLOCK: " + str(blocks))
+        activity = sample(activities, 1)[0]
+        blocks = get_match_blocks(match.users, activity)
         slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     return ("", 200)
 
@@ -62,6 +63,20 @@ def make_match():
     db.session.commit()
     return ("", 200)
 
-sched.add_job(make_match, 'cron', hour=15, minute=00)
 
-sched.start()
+match = Match.query.filter_by(index=81).first()
+slack_id = [match.users[0].slack_id, match.users[1].slack_id]
+if (match.users[0].intra_id == 'eunhkim'):
+    slack_id = match.uesrs[0].slack_id
+else:
+    slack_id = match.users[1].slack_id
+response = slack.conversations.open(users=slack_id, return_im=True)
+channel = response.body['channel']['id']
+activities = Activity.query.all()
+blocks = get_match_blocks(match.users, activities)
+slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
+
+
+#sched.add_job(make_match, 'cron', hour=15, minute=00)
+
+#sched.start()
