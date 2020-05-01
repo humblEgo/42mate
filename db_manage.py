@@ -73,7 +73,7 @@ def get_user_state(slack_id):
         return "unregistered"
 
 
-def check_overlap_evaluation(data):
+def is_overlap_evaluation(data):
     user = User.query.filter_by(slack_id=data['user']['id']).first()
     check = next((evaluation for evaluation in user.active_evaluations if evaluation.match.match_day.day == datetime.utcnow().day), None)
     if check is None:

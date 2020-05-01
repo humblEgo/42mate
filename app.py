@@ -6,7 +6,6 @@ import os
 
 from datetime import datetime
 import requests
-from blocks import get_command_view_blocks, get_base_blocks, get_eval_callback_blocks
 
 token = os.environ['SLACK_TOKEN']
 slack = Slacker(token)
@@ -17,7 +16,7 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-
+from blocks import get_command_view_blocks, get_base_blocks, get_eval_callback_blocks
 from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, create_evaluation
 from scheduled_actions import make_match
 
