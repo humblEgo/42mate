@@ -7,8 +7,6 @@ from blocks import get_base_blocks, get_evaluation_blocks
 from sqlalchemy import extract
 from datetime import datetime
 
-sched = BlockingScheduler()
-
 
 def match_failed_handling(unmatched_user):
     slack_id = unmatched_user.slack_id
@@ -73,7 +71,8 @@ def send_evaluation():
             slack.chat.post_message(channel=channel, blocks=blocks)
 
 
-sched.add_job(send_evaluation, 'cron', hour=10)
-sched.add_job(make_match, 'cron', hour=15)
-
-sched.start()
+if __name__ == "__main__":
+    sched = BlockingScheduler()
+    sched.add_job(send_evaluation, 'cron', hour=10)
+    sched.add_job(make_match, 'cron', hour=15)
+    sched.start()

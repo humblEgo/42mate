@@ -19,6 +19,7 @@ db = SQLAlchemy(app)
 
 
 from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, create_evaluation
+from scheduled_actions import make_match
 
 @app.route("/")
 def hello():
@@ -104,6 +105,12 @@ def command_callback():
             change_user_state_by_action(data)
         elif input_blocks_type == "evaluation_blocks":
             create_evaluation(data)
+    return ("", 200)
+
+
+@app.route("/testmatch", methods=['GET'])
+def testmatch():
+    make_match()
     return ("", 200)
 
 
