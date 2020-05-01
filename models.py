@@ -40,16 +40,17 @@ class Match(db.Model):
     index = db.Column(db.Integer, primary_key=True)
     match_day = db.Column(db.DateTime)
     users = db.relationship(User, secondary=user_identifier, backref='matches')
+    activity = db.Column(db.Integer, db.ForeignKey('activities.index'))
 
-    def __init__(self, user1, user2):
+    def __init__(self, user1, user2, activity):
         self.match_day = datetime.now(timezone(os.environ['TIME_ZONE']))
         self.users.append(user1)
         self.users.append(user2)
+        self.activity = activity
 
     def __repr__(self):
         return '<index: {}, match_day: {}, user1_intra_id: {}, user2_intra_id: {}>'.format(self.index, self.match_day, self.users[0].intra_id,
                                                                                 self.users[1].intra_id)
-
     def serialize(self):
         return {
             'match_day': self.match_day,
