@@ -52,39 +52,51 @@ def get_matched_group(unmatched_users, unused_matches):
             return matched_group
 
 
-def make_match():
-    print("MAKE MATCH START")
-    unmatched_users = db.session.query(User).filter_by(joined=True).order_by('match_count').all()
-    unused_matches = db.session.query(Match).all()
-    matched_groups = []
-    matches = []
+def get_matched_groups(unmatched_users, unused_matches):
     count_unmatched_users = len(unmatched_users)
+    matched_groups = []
     while count_unmatched_users >= 2:
         matched_groups += [get_matched_group(unmatched_users, unused_matches)]
         count_unmatched_users -= 2
     if count_unmatched_users == 1:
         unmatched_users[0].joined = False
         match_failed_handling(unmatched_users[0])
+    return matched_groups
+
+
+def create_match(matched_group, activities):
+    activity = sample(activities, 1)[0]
+    match = Match(
+        user1=matched_group[0],
+        user2=matched_group[1],
+        activity=activity
+    )
+    return match
+
+
+def update_user_field(unmatched_users):
+    for user in unmatched_users:
+        user.joined = False
+        user.match_count += 1
+
+
+def match_make_schedule():
+    print("MAKE MATCH START")
+    unmatched_users = db.session.query(User).filter_by(joined=True).order_by('match_count').all()
+    unused_matches = db.session.query(Match).all()
+    matched_groups = get_matched_groups(unmatched_users, unused_matches)
+    matches = []
     activities = Activity.query.all()
     for matched_group in matched_groups:
-        matched_group[0].joined = False
-        matched_group[1].joined = False
-        matched_group[0].match_count += 1
-        matched_group[1].match_count += 1
-        activity = sample(activities, 1)[0]
-        match = Match(
-            user1=matched_group[0],
-            user2=matched_group[1],
-            activity=activity
-        )
-        matches.append(match)
+        matches += [create_match(matched_group, activities)]
     match_successed_handling(matches)
+    update_user_field(unmatched_users)
     db.session.add_all(matches)
     db.session.commit()
     return ("", 200)
 
 
-sched.add_job(make_match, 'cron', hour=15, minute=00)
-sched.start()
+#sched.add_job(match_make_schedule, 'cron', hour=15, minute=00)
+#sched.start()
 
 make_match()
