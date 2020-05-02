@@ -54,8 +54,7 @@ def get_matched_group(unmatched_users, unused_matches):
 
 def make_match():
     print("MAKE MATCH START")
-    unmatched_users = db.session.query(User).join(user_identifier)\
-        .group_by(User).order_by(func.count(user_identifier.c.user_index)).all()
+    unmatched_users = db.session.query(User).filter_by(joined=True).order_by('match_count').all()
     unused_matches = db.session.query(Match).all()
     matched_groups = []
     matches = []
@@ -70,6 +69,8 @@ def make_match():
     for matched_group in matched_groups:
         matched_group[0].joined = False
         matched_group[1].joined = False
+        matched_group[0].match_count += 1
+        matched_group[1].match_count += 1
         activity = sample(activities, 1)[0]
         match = Match(
             user1=matched_group[0],

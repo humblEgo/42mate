@@ -16,6 +16,7 @@ class User(db.Model):
     intra_id = db.Column(db.String(80), unique=True)
     register = db.Column(db.Boolean)
     joined = db.Column(db.Boolean)
+    match_count = db.Column(db.Integer, default=0)
 
     def __init__(self, slack_id, intra_id):
         self.slack_id = slack_id
