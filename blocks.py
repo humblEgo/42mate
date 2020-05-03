@@ -69,7 +69,8 @@ def get_command_view_blocks(value):
             }
         }
     }
-    blocks = get_base_blocks("42MATE에 오신걸 환영합니다!!")
+    # blocks = get_base_blocks("42MATE에 오신걸 환영합니다!!")
+    blocks = []
     actions = {
         "type": "actions",
         "elements": []
@@ -101,6 +102,21 @@ def get_match_blocks(match):
                 "type": "mrkdwn",
                 "text": "*우리를 가깝게 만들 온라인 미션 : " + match.activity.subject + "* :sunglasses:\n" + match.activity.content
             }
+    }
+    blocks.append(content)
+    blocks.append({"type": "divider"})
+    return blocks
+
+
+def get_info_blocks(user_info):
+    text = "안녕하세요 *" + user_info['name'] + "* 님! 42MATE에 오신 것을 환영합니다! :clap::clap:"
+    blocks = get_base_blocks(text)
+    content = {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": ">상태 : " + user_info['state'] +" \n" + ">매칭횟수 : " + str(user_info['match_count']) + "회"
+        }
     }
     blocks.append(content)
     blocks.append({"type": "divider"})

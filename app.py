@@ -6,7 +6,7 @@ import os
 
 from datetime import datetime
 import requests
-from blocks import get_command_view_blocks, get_base_blocks
+from blocks import get_command_view_blocks, get_base_blocks, get_info_blocks
 
 token = os.environ['SLACK_TOKEN']
 slack = Slacker(token)
@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user
+from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, get_user_info
 
 @app.route("/")
 def hello():
@@ -44,14 +44,17 @@ def send_eph_message(form, service_enable_time):
 
 
 def send_direct_message(form):
-    slack_id = form.getlist('user_id')[0]
-    user_name = form.getlist('user_name')[0]
-    user_state = get_user_state(slack_id)
-    blocks = get_command_view_blocks(user_state)
-    response = slack.conversations.open(users=[slack_id], return_im=True)
+    # slack_id = form.getlist('user_id')[0]
+    # user_name = form.getlist('user_name')[0]
+    #user_state = get_user_state(slack_id)
+    user_info = get_user_info(form)
+    blocks = get_info_blocks(user_info)
+    command_view_blocks = get_command_view_blocks(user_info['state'])
+    blocks.append(command_view_blocks[0])
+    response = slack.conversations.open(users=[user_info['slack_id']], return_im=True)
     dm_channel = response.body['channel']['id']
-    if user_state is None:  # 처음 등록했을 경우
-        create_user(slack_id, user_name)
+    if user_info['state'] is None:  # 처음 등록했을 경우
+        create_user(user_info['slack_id'], user_info['user_name'])
     slack.chat.post_message(channel=dm_channel, blocks=json.dumps(blocks))
 
 

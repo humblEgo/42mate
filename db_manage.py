@@ -56,16 +56,30 @@ def unjoin_user(slack_id):
         print(str(e))
 
 
-def get_user_state(slack_id):
-    if isinstance(slack_id, list):
-        slack_id = slack_id[0]
-    user = User.query.filter_by(slack_id=slack_id).first()
+def get_user_state(user):
     if user is None:
         return None
-    if user.register is True:
-        if user.joined is True:
+    if user.register:
+        if user.joined:
             return "joined"
         else:
             return "unjoined"
     else:
         return "unregistered"
+
+
+def get_user_recode(form):
+    slack_id = form.getlist('user_id')[0]
+    user_recode = User.query.filter_by(slack_id=slack_id).first()
+    return user_recode
+
+
+def get_user_info(form):
+    info = {}
+    user = get_user_recode(form)
+    info['slack_id'] = user.slack_id
+    info['name'] = user.intra_id
+    info['state'] = get_user_state(user)
+    info['match_count'] = user.match_count
+    # info['current_mate'] = get_current_mate(user)
+    return info
