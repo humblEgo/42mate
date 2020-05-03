@@ -102,9 +102,11 @@ def match_make_schedule():
         match_failed_handling(unmatched_users[0])
     print("MATCH_MAKE_SCHEDULE_ADD_AND_COMMIT_START")
     db.session.add_all(matches)
+    print(matches)
     db.session.commit()
     print("MATCH_MAKE_SCHEDULE_END")
     return ("", 200)
+
 
 
 sched.add_job(match_make_schedule, 'cron', hour=15, minute=00)
