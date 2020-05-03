@@ -119,5 +119,6 @@ def send_join_invitation_schedule():
 
 
 sched.add_job(match_make_schedule, 'cron', hour=15, minute=00)
+sched.add_job(send_join_invitation_schedule, 'cron', hour=9, minute=00)
 sched.start()
 
