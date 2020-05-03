@@ -92,8 +92,8 @@ def send_evaluation_schedule():
             slack_id = evaluation.user.slack_id
             response = slack.conversations.open(users=slack_id, return_im=True)
             channel = response.body['channel']['id']
-            if evaluation.user.intra_id == 'eunhkim':
-                slack.chat.post_message(channel=channel, blocks=blocks)
+            slack.chat.post_message(channel=channel, blocks=blocks)
+    db.session.commit()
 
 
 if __name__ == "__main__":

@@ -81,23 +81,12 @@ def is_overlap_evaluation(block_id):
     return True
 
 
-def create_evaluation(data):
-    user_slack_id = data['user']['id']
-    user = User.query.filter_by(slack_id=user_slack_id).first()
-    match = Match.query.filter(Match.users.contains(user)).first()
-    #TODO: NEEDS REFACTORING
-    mate_slack_id = next((mate.slack_id for mate in match.users if mate.slack_id != user_slack_id), None)
-    mate = User.query.filter_by(slack_id=mate_slack_id).first()
-    satisfaction = int(data['actions'][0]['value'])
+def update_evaluation(data):
     try:
-        evaluation=Evaluation(
-            match=match,
-            user=user,
-            mate=mate,
-            satisfaction=satisfaction
-        )
-        db.session.add(evaluation)
+        evaluation_index = data['message']['blocks'][1]['block_id'].replace('evaluation_blocks_', '')
+        evaluation = Evaluation.query.filter_by(index=evaluation_index).first()
+        evaluation.satisfaction = int(data['actions'][0]['value'])
+        evaluation.react_time = datetime.utcnow()
         db.session.commit()
-        print("New evaluation(" + str(evaluation) + ") Created Successfully")
     except Exception as e:
         print(str(e))
