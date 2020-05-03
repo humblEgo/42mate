@@ -1,9 +1,9 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from app import db, slack
-from blocks import get_base_blocks, get_match_blocks
+from blocks import get_base_blocks, get_match_blocks, get_invitation_blocks
 from models import User, Match, user_identifier, Activity
 from random import sample
-from sqlalchemy import func, text, or_, any_
+from sqlalchemy import func, text, or_, any_, and_
 import json
 
 sched = BlockingScheduler()
@@ -107,6 +107,15 @@ def match_make_schedule():
     print("MATCH_MAKE_SCHEDULE_END")
     return ("", 200)
 
+
+def send_join_invitation():
+    blocks = get_invitation_blocks()
+    unjoined_users = db.session.query(User).filter(and_(User.register == True, User.joined == False)).all()
+    for user in unjoined_users:
+        slack_id = user.slack_id
+        response = slack.conversations.open(users=slack_id, return_im=True)
+        channel = response.body['channel']['id']
+        slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
 
 
 sched.add_job(match_make_schedule, 'cron', hour=15, minute=00)
