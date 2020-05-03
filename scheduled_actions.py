@@ -54,7 +54,7 @@ def get_matched_group(unmatched_users, unused_matches):
 
 def make_match():
     print("MAKE MATCH START")
-    unmatched_users = db.session.query(User).join(user_identifier)\
+    unmatched_users = db.session.query(User).filter_by(joined=True).join(user_identifier)\
         .group_by(User).order_by(func.count(user_identifier.c.user_index)).all()
     unused_matches = db.session.query(Match).all()
     matched_groups = []
@@ -79,11 +79,12 @@ def make_match():
         matches.append(match)
     match_successed_handling(matches)
     db.session.add_all(matches)
+    print(matches)
     db.session.commit()
     return ("", 200)
 
 
-sched.add_job(make_match, 'cron', hour=15, minute=00)
-sched.start()
+#sched.add_job(make_match, 'cron', hour=15, minute=00)
+#sched.start()
 
 make_match()
