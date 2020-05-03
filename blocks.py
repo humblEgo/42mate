@@ -90,18 +90,18 @@ def get_command_view_blocks(value):
     return blocks
 
 
-def get_evaluation_blocks():
+def get_evaluation_blocks(evaluation):
     evaluation_blocks = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "오늘 메이트와의 시간은 얼마나 만족스러우셨나요? :ghost:"
+                "text":"*" + evaluation.user.intra_id + "* 님, 어제 메이트 *" + evaluation.mate.intra_id + "* 님과의 시간은 얼마나 만족스러우셨나요? :ghost:"
             }
         },
         {
             "type": "actions",
-            "block_id": "evaluation_blocks",
+            "block_id": "evaluation_blocks_" + str(evaluation.index),
             "elements": [
                 {
                     "type": "button",

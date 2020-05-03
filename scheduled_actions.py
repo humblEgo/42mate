@@ -5,7 +5,7 @@ from random import sample
 import json
 from blocks import get_base_blocks, get_evaluation_blocks
 from sqlalchemy import extract
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def match_failed_handling(unmatched_user):
@@ -82,18 +82,23 @@ def make_match_and_eval():
 
 
 def send_evaluation():
-    blocks = json.dumps(get_evaluation_blocks())
-    matches = db.session.query(Match).filter(extract('day', Match.match_day) == datetime.utcnow().day).all()
+    today = datetime.date(datetime.utcnow())
+    yesterday = today - timedelta(days=1)
+    matches = db.session.query(Match).filter(Match.match_day >= yesterday, Match.match_day < today).all()
     for match in matches:
-        for i in range(2):
-            slack_id = match.users[i].slack_id
+        for evaluation in match.evaluations:
+            evaluation.send_time = datetime.utcnow()
+            blocks = json.dumps(get_evaluation_blocks(evaluation))
+            slack_id = evaluation.user.slack_id
             response = slack.conversations.open(users=slack_id, return_im=True)
             channel = response.body['channel']['id']
-            slack.chat.post_message(channel=channel, blocks=blocks)
+            if evaluation.user.intra_id == 'eunhkim':
+                slack.chat.post_message(channel=channel, blocks=blocks)
 
 
 if __name__ == "__main__":
     sched = BlockingScheduler()
-    sched.add_job(send_evaluation, 'cron', hour=10)
+    sched.add_job(send_evaluation, 'cron', hour=1)
     sched.add_job(make_match_and_eval, 'cron', hour=15)
     sched.start()
+

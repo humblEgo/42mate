@@ -57,10 +57,12 @@ class Match(db.Model):
             'user2_intra_id': self.uesrs[1].intra_id,
         }
 
+
 class Evaluation(db.Model):
     __tablename__ = 'evaluations'
 
     index = db.Column(db.Integer, primary_key=True)
+    send_time = db.Column(db.DateTime, nullable=True)
     react_time = db.Column(db.DateTime, nullable=True)
     match_index = db.Column(db.Integer, ForeignKey('matches.index'))
     match = db.relationship(Match, foreign_keys=[match_index], backref='evaluations')

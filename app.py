@@ -18,7 +18,7 @@ db = SQLAlchemy(app)
 
 from blocks import get_command_view_blocks, get_base_blocks
 from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, create_evaluation, is_overlap_evaluation
-from scheduled_actions import make_match_and_eval
+#from scheduled_actions import make_match_and_eval
 
 @app.route("/")
 def hello():
