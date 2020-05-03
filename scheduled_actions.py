@@ -100,7 +100,6 @@ def match_make_schedule():
     match_successed_handling(matches)
     if unmatched_users:
         match_failed_handling(unmatched_users[0])
-    update_user_field(unmatched_users)
     print("MATCH_MAKE_SCHEDULE_ADD_AND_COMMIT_START")
     db.session.add_all(matches)
     db.session.commit()
