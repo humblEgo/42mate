@@ -17,6 +17,7 @@ class User(db.Model):
     intra_id = db.Column(db.String(80), unique=True)
     register = db.Column(db.Boolean)
     joined = db.Column(db.Boolean)
+    match_count = db.Column(db.Integer, default=0)
 
     def __init__(self, slack_id, intra_id):
         self.slack_id = slack_id
@@ -41,20 +42,24 @@ class Match(db.Model):
     index = db.Column(db.Integer, primary_key=True)
     match_day = db.Column(db.DateTime)
     users = db.relationship(User, secondary=user_identifier, backref='matches')
+    activity_index = db.Column(db.Integer, db.ForeignKey('activities.index'))
+    activity = db.relationship("Activity")
 
-    def __init__(self, user1, user2):
+    def __init__(self, user1, user2, activity):
         self.match_day = datetime.now(timezone(os.environ['TIME_ZONE']))
         self.users.append(user1)
         self.users.append(user2)
+        self.activity = activity
 
     def __repr__(self):
-        return '<match_day: {}, user1_intra_id: {}, user2_intra_id: {}>'.format(self.match_day, self.users[0].intra_id,
-                                                                                self.users[1].intra_id)
+        return '<index: {}, match_day: {}, user1_intra_id: {}, user2_intra_id: {}, activity: {}>'\
+            .format(self.index, self.match_day, self.users[0].intra_id, self.users[1].intra_id, self.activity.subject)
+
     def serialize(self):
         return {
             'match_day': self.match_day,
             'user1_intra_id': self.users[0].intra_id,
-            'user2_intra_id': self.uesrs[1].intra_id,
+            'user2_intra_id': self.uesrs[1].intra_id
         }
 
 
@@ -91,4 +96,24 @@ class Evaluation(db.Model):
         }
 
 
+class Activity(db.Model):
+    __tablename__ = 'activities'
+    index = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.String)
+    content = db.Column(db.String)
+    url = db.Column(db.String, nullable=True)
 
+    def __init__(self, subject, content, url=None):
+        self.subject = subject
+        self.content = content
+        self.url = url
+
+    def __repr__(self):
+        return '<index: {}, subject: {}, content: {}, url: {}>'.format(self.index, self.subject, self.content, self.url)
+
+    def serialize(self):
+        return {
+            'subject': self.subject,
+            'content': self.content,
+            'url': self.url
+        }
