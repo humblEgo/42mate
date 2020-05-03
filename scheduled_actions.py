@@ -81,7 +81,7 @@ def make_match_and_eval():
     db.session.commit()
 
 
-def send_evaluation():
+def send_evaluation_schedule():
     today = datetime.date(datetime.utcnow())
     yesterday = today - timedelta(days=1)
     matches = db.session.query(Match).filter(Match.match_day >= yesterday, Match.match_day < today).all()
@@ -98,7 +98,7 @@ def send_evaluation():
 
 if __name__ == "__main__":
     sched = BlockingScheduler()
-    sched.add_job(send_evaluation, 'cron', hour=1)
+    sched.add_job(send_evaluation_schedule, 'cron', hour=1)
     sched.add_job(make_match_and_eval, 'cron', hour=15)
     sched.start()
 

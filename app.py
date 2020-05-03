@@ -86,14 +86,16 @@ def update_command_view(data, input_blocks_type, service_enable_time):
     if service_enable_time:
         if input_blocks_type == "command_view_blocks":
             update_blocks = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!") #추후 get_cmnd_view_callback_blocks 로 변경 예정
-        elif input_blocks_type == "evaluation_blocks":
-            if is_overlap_evaluation(data):
+        elif input_blocks_type.startswith("evaluation_blocks"):
+            if is_overlap_evaluation(user_action['block_id']):
                 blocks = get_base_blocks("오늘의 설문에 대해 이미 응답하셨습니다.")
+                print(blocks)
             else:
                 blocks = get_base_blocks("응답해주셔서 감사합니다.")
+                print(blocks)
     else:
         update_blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
-    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_blocks))
+    #slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_blocks))
 
 
 @app.route("/slack/callback", methods=['POST'])
@@ -105,8 +107,8 @@ def command_callback():
     if service_enable_time:
         if input_blocks_type == "command_view_blocks":
             change_user_state_by_action(data)
-        elif input_blocks_type == "evaluation_blocks":
-            create_evaluation(data)
+        elif input_blocks_type.startswith("evaluation_blocks"):
+            print("HELLO")
     return ("", 200)
 
 
