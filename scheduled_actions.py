@@ -108,5 +108,3 @@ def match_make_schedule():
 
 sched.add_job(match_make_schedule, 'cron', hour=15, minute=00)
 sched.start()
-
-match_make_schedule()
