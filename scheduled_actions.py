@@ -8,9 +8,6 @@ from datetime import datetime, timedelta
 from sqlalchemy import extract, func, text, or_, any_
 
 
-sched = BlockingScheduler()
-
-
 def create_evaluations_for(match):
     evaluations = []
     for i, user in enumerate(match.users):
@@ -136,6 +133,7 @@ def send_evaluation_schedule():
     today = datetime.date(datetime.utcnow())
     yesterday = today - timedelta(days=1)
     matches = db.session.query(Match).filter(Match.match_day >= yesterday, Match.match_day < today).all()
+    print(matches)
     for match in matches:
         for evaluation in match.evaluations:
             evaluation.send_time = datetime.utcnow()

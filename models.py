@@ -53,7 +53,7 @@ class Match(db.Model):
 
     def __repr__(self):
         return '<index: {}, match_day: {}, user1_intra_id: {}, user2_intra_id: {}, activity: {}>'\
-            .format(self.index, self.match_day, self.users[0].intra_id, self.users[1].intra_id, self.activity.subject)
+            .format(self.index, self.match_day, self.users[0].intra_id, self.users[1].intra_id, self.activity)
 
     def serialize(self):
         return {
