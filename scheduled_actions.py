@@ -120,3 +120,4 @@ def send_join_invitation():
 
 sched.add_job(match_make_schedule, 'cron', hour=15, minute=00)
 sched.start()
+
