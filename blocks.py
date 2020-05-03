@@ -72,6 +72,7 @@ def get_command_view_blocks(value):
     blocks = get_base_blocks("42MATE에 오신걸 환영합니다!!")
     actions = {
         "type": "actions",
+        "block_id": "command_view_blocks",
         "elements": []
     }
 
