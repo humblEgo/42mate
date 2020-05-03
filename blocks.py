@@ -11,7 +11,21 @@ def get_base_blocks(text):
     return base_block
 
 
-def get_command_view_blocks(value):
+def get_base_context_blocks(text):
+    blocks = [
+        {
+            "type": "context",
+            "elements": [
+                {"type": "mrkdwn", "text": text}
+            ]
+        }
+    ]
+    return blocks
+
+
+def get_command_view_blocks(user_info):
+    value = user_info['state']
+
     register_action = {
         "type": "button",
         "text": {
@@ -21,7 +35,6 @@ def get_command_view_blocks(value):
         "style": "primary",
         "value": "register"
     }
-
     join_action = {
         "type": "button",
         "text": {
@@ -31,7 +44,6 @@ def get_command_view_blocks(value):
         "style": "primary",
         "value": "join"
     }
-
     unjoin_action = {
         "type": "button",
         "text": {
@@ -41,7 +53,6 @@ def get_command_view_blocks(value):
         "style": "danger",
         "value": "unjoin"
     }
-
     unregister_action = {
         "type": "button",
         "text": {
@@ -57,7 +68,7 @@ def get_command_view_blocks(value):
             },
             "text": {
                 "type": "mrkdwn",
-                "text": "언제라도 다시 돌아오세요"
+                "text": "앞으로 메이트 매칭에 참여할 수 없습니다."
             },
             "confirm": {
                 "type": "plain_text",
@@ -69,8 +80,8 @@ def get_command_view_blocks(value):
             }
         }
     }
-    # blocks = get_base_blocks("42MATE에 오신걸 환영합니다!!")
-    blocks = []
+
+    blocks = get_base_blocks(user_info['intra_id'] + "님, 안녕하세요! 무엇을 도와드릴까요?")
     actions = {
         "type": "actions",
         "elements": []
@@ -109,15 +120,16 @@ def get_match_blocks(match):
 
 
 def get_info_blocks(user_info):
-    text = "안녕하세요 *" + user_info['name'] + "* 님! 42MATE에 오신 것을 환영합니다! :clap::clap:"
-    blocks = get_base_blocks(text)
-    content = {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": ">상태 : " + user_info['state'] +" \n" + ">매칭횟수 : " + str(user_info['match_count']) + "회"
-        }
-    }
-    blocks.append(content)
-    blocks.append({"type": "divider"})
+    if user_info['current_mate']:
+        text = "오늘의 메이트는 *" + user_info['current_mate'] + "* 님입니다. "
+    else:
+        text = "오늘은 메이트가 없습니다."
+    if user_info['state'] == 'joined':
+        text += "내일 참여가 예약되어 있습니다."
+    elif user_info['state'] == 'unjoined':
+        text += "내일 참여가 예약되어 있지 않습니다."
+    elif user_info['state'] == 'unregistered':
+        text += "앞으로 메이트 매칭이 진행되지 않습니다."
+    blocks = [{"type": "context", "elements": [{"type": "mrkdwn", "text": text}]}]
+    blocks += get_command_view_blocks(user_info)
     return blocks

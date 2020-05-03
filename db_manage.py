@@ -1,5 +1,7 @@
 from models import User, Match
 from app import db
+from datetime import datetime, timedelta
+import pytz
 
 
 def create_user(slack_id, intra_id):
@@ -68,18 +70,24 @@ def get_user_state(user):
         return "unregistered"
 
 
-def get_user_recode(form):
+def get_user_record(form):
     slack_id = form.getlist('user_id')[0]
-    user_recode = User.query.filter_by(slack_id=slack_id).first()
-    return user_recode
+    user_record = User.query.filter_by(slack_id=slack_id).first()
+    return user_record
 
 
 def get_user_info(form):
-    info = {}
-    user = get_user_recode(form)
-    info['slack_id'] = user.slack_id
-    info['name'] = user.intra_id
-    info['state'] = get_user_state(user)
-    info['match_count'] = user.match_count
-    # info['current_mate'] = get_current_mate(user)
-    return info
+    user_info = {}
+    user = get_user_record(form)
+    user_info['state'] = get_user_state(user)
+    user_info['slack_id'] = user.slack_id
+    user_info['intra_id'] = user.intra_id
+    user_info['match_count'] = user.match_count
+    today = datetime.date(datetime.utcnow())
+    match = Match.query.filter(Match.match_day >= today).first()
+    if match:
+        user_info['current_mate'] = match.users[0].intra_id == user_info['intra_id'] \
+                                    and match.users[1].intra_id or match.users[0].intra_id
+    else:
+        user_info['current_mate'] = None
+    return user_info
