@@ -83,6 +83,7 @@ def match_failed_handling(unmatched_user):
     channel = response.body['channel']['id']
     blocks = get_base_blocks("MATCH FAILED. SORRY, " + str(intra_id) + "!")
     slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
+    unmatched_user.match_count -= 1
     return ("", 200)
 
 
@@ -90,6 +91,7 @@ def match_make_schedule():
     print("MATCH_MAKE_SCHEDULE_START")
     unmatched_users = db.session.query(User).filter_by(joined=True).order_by('match_count').all()
     unused_matches = get_unused_matches()
+    update_user_field(unmatched_users)
     matched_groups = get_matched_groups(unmatched_users, unused_matches)
     matches = []
     activities = Activity.query.all()
@@ -108,5 +110,3 @@ def match_make_schedule():
 
 sched.add_job(match_make_schedule, 'cron', hour=15, minute=00)
 sched.start()
-
-match_make_schedule()
