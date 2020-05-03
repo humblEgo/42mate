@@ -8,6 +8,7 @@ user_identifier = db.Table('user_identifier',
     db.Column('match_index', db.Integer, db.ForeignKey('matches.index'))
 )
 
+
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -35,6 +36,7 @@ class User(db.Model):
             'register': self.register,
             'joined': self.joined
         }
+
 
 class Match(db.Model):
     __tablename__ = 'matches'

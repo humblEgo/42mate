@@ -105,3 +105,46 @@ def get_match_blocks(match):
     blocks.append(content)
     blocks.append({"type": "divider"})
     return blocks
+
+def get_invitation_blocks():
+    invitaion_blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "내일, 당신의 메이트와 만나보시겠어요? :smile:"
+            }
+        },
+        {
+            "type": "actions",
+            "block_id": "invitation_blocks",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "응응~"
+                    },
+                    "style": "primary",
+                    "value": "join"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "아니, 내일은 스킵~"
+                    },
+                    "style": "danger",
+                    "value": "unjoin"
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "!매칭권유 구독을 원치 않으시면 /42mate 입력 후 '휴식하기' 선택!"
+            }
+        }
+    ]
+    return invitaion_blocks
