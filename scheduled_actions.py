@@ -108,7 +108,7 @@ def match_make_schedule():
     return ("", 200)
 
 
-def send_join_invitation():
+def send_join_invitation_schedule():
     blocks = get_invitation_blocks()
     unjoined_users = db.session.query(User).filter(and_(User.register == True, User.joined == False)).all()
     for user in unjoined_users:
