@@ -6,7 +6,6 @@ import os
 
 from datetime import datetime
 import requests
-from blocks import get_command_view_blocks, get_base_blocks
 
 token = os.environ['SLACK_TOKEN']
 slack = Slacker(token)
@@ -17,8 +16,9 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-
-from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user
+from blocks import get_command_view_blocks, get_base_blocks
+from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, update_evaluation, is_overlap_evaluation
+#from scheduled_actions import make_match_and_eval
 
 @app.route("/")
 def hello():
@@ -79,28 +79,35 @@ def change_user_state_by_action(data):
         unjoin_user(user_slack_id)
 
 
-def update_command_view(data, service_enable_time):
+def update_command_view(data, input_blocks_type, service_enable_time):
     ts = data['message']['ts']
     channel = data['channel']['id']
     user_action = data['actions'][0]
-    input_blocks_id = data['actions'][0]['block_id']
+    input_blocks_type = data['actions'][0]['block_id']
     if service_enable_time:
-        if input_blocks_id == "invitation_blocks":
-            update_message = get_base_blocks("응답해주셔서 감사합니다! 내일 봬요!")
-        else:
-            update_message = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!")
+        if input_blocks_type == "command_view_blocks":
+            update_blocks = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!") #추후 get_cmnd_view_callback_blocks 로 변경 예정
+        elif input_blocks_type.startswith("evaluation_blocks"):
+            if is_overlap_evaluation(user_action['block_id']):
+                update_blocks = get_base_blocks("오늘의 설문에 대해 이미 응답하셨습니다.")
+            else:
+                update_blocks = get_base_blocks("응답해주셔서 감사합니다.")
     else:
-        update_message = get_base_blocks("지금은 매칭을 준비중입니다.")
-    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_message))
+        update_blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
+    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_blocks))
 
 
 @app.route("/slack/callback", methods=['POST'])
 def command_callback():
     data = json.loads(request.form['payload'])
+    input_blocks_type = data['actions'][0]['block_id']
     service_enable_time = not is_readytime()
-    update_command_view(data, service_enable_time)
+    update_command_view(data, input_blocks_type, service_enable_time)
     if service_enable_time:
-        change_user_state_by_action(data)
+        if input_blocks_type == "command_view_blocks":
+            change_user_state_by_action(data)
+        elif input_blocks_type.startswith("evaluation_blocks"):
+            update_evaluation(data)
     return ("", 200)
 
 

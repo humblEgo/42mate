@@ -90,6 +90,71 @@ def get_command_view_blocks(value):
     return blocks
 
 
+def get_evaluation_blocks(evaluation):
+    evaluation_blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text":"*" + evaluation.user.intra_id + "* 님, 어제 메이트 *" + evaluation.mate.intra_id + "* 님과의 시간은 얼마나 만족스러우셨나요? :ghost:"
+            }
+        },
+        {
+            "type": "actions",
+            "block_id": "evaluation_blocks_" + str(evaluation.index),
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star:",
+                        "emoji": True
+                    },
+                    "value": "10"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star:",
+                        "emoji": True
+                    },
+                    "value": "20"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star:",
+                        "emoji": True
+                    },
+                    "value": "30"
+                },
+                {
+                    "action_id": "evaluation",
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star::star:",
+                        "emoji": True
+                    },
+                    "value": "40"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star::star::star:",
+                        "emoji": True
+                    },
+                    "value": "50"
+                }
+            ]
+        }
+    ]
+    return evaluation_blocks
+
+
 def get_match_blocks(match):
     text = "따-단! *" + match.users[0].intra_id + "* 님과 *" + match.users[1].intra_id + "* 님은 오늘의 메이트입니다. \n" \
         + "온라인 미션과 함께 서로에 대해 알아가며 흥미로운 시간을 만들어보세요. \n" \

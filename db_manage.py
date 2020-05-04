@@ -1,5 +1,7 @@
-from models import User, Match
+from models import User, Match, Evaluation
 from app import db
+from datetime import datetime
+from sqlalchemy import extract
 
 
 def create_user(slack_id, intra_id):
@@ -69,3 +71,22 @@ def get_user_state(slack_id):
             return "unjoined"
     else:
         return "unregistered"
+
+
+def is_overlap_evaluation(block_id):
+    evaluation_index = block_id.replace('evaluation_blocks_', '')
+    check = Evaluation.query.filter_by(index=evaluation_index).first().react_time
+    if check is None:
+        return False
+    return True
+
+
+def update_evaluation(data):
+    try:
+        evaluation_index = data['message']['blocks'][1]['block_id'].replace('evaluation_blocks_', '')
+        evaluation = Evaluation.query.filter_by(index=evaluation_index).first()
+        evaluation.satisfaction = int(data['actions'][0]['value'])
+        evaluation.react_time = datetime.utcnow()
+        db.session.commit()
+    except Exception as e:
+        print(str(e))
