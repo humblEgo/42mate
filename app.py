@@ -93,6 +93,12 @@ def update_command_view(data, input_blocks_type, service_enable_time):
                 update_message += " " + "오후 11시 42분까지 메이트 신청이 가능합니다."
             elif user_action == 'unregister':
                 update_message += " " + "언제라도 다시 돌아올 수 있습니다."
+        elif input_blocks_type == "invitation_blocks":
+            update_message = "적용되었습니다."
+            if user_action == 'join':
+                update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
+            elif user_action == 'unjoin':
+                update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
         elif input_blocks_type.startswith("evaluation_blocks"):
             if is_overlap_evaluation(input_blocks_type):
                 update_message = "오늘의 설문에 대해 이미 응답하셨습니다."
@@ -111,7 +117,7 @@ def command_callback():
     service_enable_time = not is_readytime()
     update_command_view(data, input_blocks_type, service_enable_time)
     if service_enable_time:
-        if input_blocks_type == "command_view_blocks":
+        if input_blocks_type in ["command_view_blocks", "invitation_blocks"]:
             change_user_state_by_action(data)
         elif input_blocks_type.startswith("evaluation_blocks"):
             update_evaluation(data)

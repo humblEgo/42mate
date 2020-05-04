@@ -141,7 +141,7 @@ def send_evaluation_schedule():
 
 def send_join_invitation_schedule():
     blocks = get_invitation_blocks()
-    unjoined_users = db.session.query(User).filter(and_(User.register == True, User.joined == False)).all()
+    unjoined_users = db.session.query(User).filter(User.register == True, User.joined == False).all()
     for user in unjoined_users:
         slack_id = user.slack_id
         response = slack.conversations.open(users=slack_id, return_im=True)
@@ -150,10 +150,8 @@ def send_join_invitation_schedule():
 
 
 if __name__ == "__main__":
-    # match_make_schedule()
-    send_evaluation_schedule()
-    # sched = BlockingScheduler()
-    # sched.add_job(send_evaluation_schedule, 'cron', hour=1)
-    # sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
-    # sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
-    # sched.start()
+    sched = BlockingScheduler()
+    sched.add_job(send_evaluation_schedule, 'cron', hour=1)
+    sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
+    sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
+    sched.start()
