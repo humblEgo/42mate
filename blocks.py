@@ -84,6 +84,7 @@ def get_command_view_blocks(user_info):
     blocks = get_base_blocks(user_info['intra_id'] + "님, 안녕하세요! 무엇을 도와드릴까요?")
     actions = {
         "type": "actions",
+        "block_id": "command_view_blocks",
         "elements": []
     }
 
@@ -99,6 +100,71 @@ def get_command_view_blocks(user_info):
     blocks.append(actions)
 
     return blocks
+
+
+def get_evaluation_blocks(evaluation):
+    evaluation_blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text":"*" + evaluation.user.intra_id + "* 님, 어제 메이트 *" + evaluation.mate.intra_id + "* 님과의 시간은 얼마나 만족스러우셨나요? :ghost:"
+            }
+        },
+        {
+            "type": "actions",
+            "block_id": "evaluation_blocks_" + str(evaluation.index),
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star:",
+                        "emoji": True
+                    },
+                    "value": "10"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star:",
+                        "emoji": True
+                    },
+                    "value": "20"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star:",
+                        "emoji": True
+                    },
+                    "value": "30"
+                },
+                {
+                    "action_id": "evaluation",
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star::star:",
+                        "emoji": True
+                    },
+                    "value": "40"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":star::star::star::star::star:",
+                        "emoji": True
+                    },
+                    "value": "50"
+                }
+            ]
+        }
+    ]
+    return evaluation_blocks
 
 
 def get_match_blocks(match):
@@ -133,3 +199,47 @@ def get_info_blocks(user_info):
     blocks = [{"type": "context", "elements": [{"type": "mrkdwn", "text": text}]}]
     blocks += get_command_view_blocks(user_info)
     return blocks
+
+
+def get_invitation_blocks():
+    invitaion_blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "내일, 당신의 메이트와 만나보시겠어요? :smile:"
+            }
+        },
+        {
+            "type": "actions",
+            "block_id": "invitation_blocks",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "응응~"
+                    },
+                    "style": "primary",
+                    "value": "join"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "아니, 내일은 스킵~"
+                    },
+                    "style": "danger",
+                    "value": "unjoin"
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "!매칭권유 구독을 원치 않으시면 /42mate 입력 후 '휴식하기' 선택!"
+            }
+        }
+    ]
+    return invitaion_blocks

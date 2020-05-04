@@ -3,10 +3,7 @@ from flask import Flask, request, make_response
 from flask_sqlalchemy import SQLAlchemy
 import json
 import os
-
 from datetime import datetime
-import requests
-from blocks import get_base_blocks, get_base_context_blocks, get_info_blocks
 
 token = os.environ['SLACK_TOKEN']
 slack = Slacker(token)
@@ -17,8 +14,8 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-
-from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, get_user_info
+from blocks import get_command_view_blocks, get_base_blocks, get_base_context_blocks, get_info_blocks
+from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, update_evaluation, is_overlap_evaluation,  get_user_info
 
 @app.route("/")
 def hello():
@@ -79,20 +76,27 @@ def change_user_state_by_action(data):
         unjoin_user(user_slack_id)
 
 
-def update_command_view(data, service_enable_time):
+def update_command_view(data, input_blocks_type, service_enable_time):
     ts = data['message']['ts']
     channel = data['channel']['id']
     user_action = data['actions'][0]['value']
+    input_blocks_type = data['actions'][0]['block_id']
     if service_enable_time:
-        update_message = "적용되었습니다."
-        if user_action == 'join':
-            update_message += " " + "내일의 메이트는 12시에 공개됩니다."
-        elif user_action == 'unjoin':
-            update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
-        elif user_action == 'register':
-            update_message += " " + "오후 11시 42분까지 메이트 신청이 가능합니다."
-        elif user_action == 'unregister':
-            update_message += " " + "언제라도 다시 돌아올 수 있습니다."
+        if input_blocks_type == "command_view_blocks":
+            update_message = "적용되었습니다."
+            if user_action == 'join':
+                update_message += " " + "내일의 메이트는 12시에 공개됩니다."
+            elif user_action == 'unjoin':
+                update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
+            elif user_action == 'register':
+                update_message += " " + "오후 11시 42분까지 메이트 신청이 가능합니다."
+            elif user_action == 'unregister':
+                update_message += " " + "언제라도 다시 돌아올 수 있습니다."
+        elif input_blocks_type.startswith("evaluation_blocks"):
+            if is_overlap_evaluation(user_action):
+                update_message = "오늘의 설문에 대해 이미 응답하셨습니다."
+            else:
+                update_message = "응답해주셔서 감사합니다."
     else:
         update_message = "매칭 준비중입니다. 12시 이후에 다시 시도해주세요."
     blocks = get_base_context_blocks(update_message)
@@ -102,10 +106,14 @@ def update_command_view(data, service_enable_time):
 @app.route("/slack/callback", methods=['POST'])
 def command_callback():
     data = json.loads(request.form['payload'])
+    input_blocks_type = data['actions'][0]['block_id']
     service_enable_time = not is_readytime()
-    update_command_view(data, service_enable_time)
+    update_command_view(data, input_blocks_type, service_enable_time)
     if service_enable_time:
-        change_user_state_by_action(data)
+        if input_blocks_type == "command_view_blocks":
+            change_user_state_by_action(data)
+        elif input_blocks_type.startswith("evaluation_blocks"):
+            update_evaluation(data)
     return ("", 200)
 
 
