@@ -83,8 +83,12 @@ def update_command_view(data, service_enable_time):
     ts = data['message']['ts']
     channel = data['channel']['id']
     user_action = data['actions'][0]
+    input_blocks_id = data['actions'][0]['block_id']
     if service_enable_time:
-        update_message = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!")
+        if input_blocks_id == "invitation_blocks":
+            update_message = get_base_blocks("응답해주셔서 감사합니다! 내일 봬요!")
+        else:
+            update_message = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!")
     else:
         update_message = get_base_blocks("지금은 매칭을 준비중입니다.")
     slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(update_message))
