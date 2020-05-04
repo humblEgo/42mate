@@ -85,10 +85,9 @@ def get_user_info(form):
     user_info['intra_id'] = user.intra_id
     user_info['match_count'] = user.match_count
     today = datetime.date(datetime.utcnow())
-    match = Match.query.filter(Match.match_day >= today).first()
-    if match:
-        user_info['current_mate'] = match.users[0].intra_id == user_info['intra_id'] \
-                                    and match.users[1].intra_id or match.users[0].intra_id
+    evaluation = Evaluation.query.filter(Evaluation.user == user, Evaluation.match.match_day >= today).first()
+    if evaluation:
+        user_info['current_mate'] = evaluation.mate.intra_id
     else:
         user_info['current_mate'] = None
     return user_info
