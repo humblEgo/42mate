@@ -86,7 +86,7 @@ def update_command_view(data, input_blocks_type, service_enable_time):
         if input_blocks_type == "command_view_blocks":
             update_message = "적용되었습니다."
             if user_action == 'join':
-                update_message += " " + "내일의 메이트는 12시에 공개됩니다."
+                update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
             elif user_action == 'unjoin':
                 update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
             elif user_action == 'register':
