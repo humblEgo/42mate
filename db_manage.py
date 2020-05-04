@@ -1,7 +1,7 @@
 from models import User, Match, Evaluation
 from app import db
 from datetime import datetime, timedelta
-import pytz
+from pytz import timezone, utc
 from sqlalchemy import extract
 
 
@@ -79,9 +79,11 @@ def get_user_record(form):
 
 def get_user_current_mate(user):
     if user:
-        today = datetime.date(datetime.utcnow())
+        today = datetime.now(timezone('Asia/Seoul')).date()
         evaluation = Evaluation.query.filter(Evaluation.user == user).order_by(Evaluation.index.desc()).first()
-        if evaluation and evaluation.match.match_day.date() == today:
+        utc_time = evaluation.match.match_day
+        seoul_date = utc.localize(utc_time).astimezone(timezone('Asia/Seoul')).date()
+        if evaluation and seoul_date == today:
             return evaluation.mate.intra_id
     return None
 

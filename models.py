@@ -48,7 +48,7 @@ class Match(db.Model):
     activity = db.relationship("Activity")
 
     def __init__(self, user1, user2, activity):
-        self.match_day = datetime.now(timezone(os.environ['TIME_ZONE']))
+        self.match_day = datetime.utcnow()
         self.users.append(user1)
         self.users.append(user2)
         self.activity = activity

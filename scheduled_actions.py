@@ -152,8 +152,9 @@ def send_evaluation_schedule():
 
 
 if __name__ == "__main__":
-    sched = BlockingScheduler()
-    sched.add_job(send_evaluation_schedule, 'cron', hour=1)
-    sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
-    sched.add_job(match_make_schedule, 'cron', hour=15)
-    sched.start()
+    match_make_schedule()
+    # sched = BlockingScheduler()
+    # sched.add_job(send_evaluation_schedule, 'cron', hour=1)
+    # sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
+    # sched.add_job(match_make_schedule, 'cron', hour=15)
+    # sched.start()

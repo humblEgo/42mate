@@ -3,7 +3,7 @@ from flask import Flask, request, make_response
 from flask_sqlalchemy import SQLAlchemy
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 token = os.environ['SLACK_TOKEN']
 slack = Slacker(token)
@@ -24,7 +24,7 @@ def hello():
 
 def is_readytime():
     utctime = datetime.utcnow()
-    if utctime.hour == 14 and utctime.minute > 42:
+    if utctime.hour == 14 and utctime.minute >= 42:
         # TODO HOUR TO 14, MINUTE TO 42
         return True
     return False
