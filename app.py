@@ -83,6 +83,7 @@ def update_command_view(data, input_blocks_type, service_enable_time):
     ts = data['message']['ts']
     channel = data['channel']['id']
     user_action = data['actions'][0]
+    input_blocks_type = data['actions'][0]['block_id']
     if service_enable_time:
         if input_blocks_type == "command_view_blocks":
             update_blocks = get_base_blocks(user_action['value'] + "가 성공적으로 수행되었습니다!") #추후 get_cmnd_view_callback_blocks 로 변경 예정
@@ -107,12 +108,6 @@ def command_callback():
             change_user_state_by_action(data)
         elif input_blocks_type.startswith("evaluation_blocks"):
             update_evaluation(data)
-    return ("", 200)
-
-
-@app.route("/testmatch", methods=['GET'])
-def testmatch():
-    make_match_and_eval()
     return ("", 200)
 
 
