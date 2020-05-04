@@ -6,6 +6,7 @@ from random import sample
 from sqlalchemy import and_
 import json
 from datetime import datetime, timedelta
+from pytz import timezone, utc
 
 
 def create_evaluations_for(match):
@@ -118,8 +119,13 @@ def match_make_schedule():
 
 
 def send_evaluation_schedule():
-    today = datetime.date(datetime.utcnow())
-    yesterday = today - timedelta(days=1)
+    ktc = datetime.now(timezone('Asia/Seoul'))
+    if ktc.time().hour >= 9 and ktc.time().hour < 24:
+        yesterday = (datetime.utcnow() - timedelta(days=2)).date()
+        today = (datetime.utcnow() - timedelta(days=1)).date()
+    else:
+        yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+        today = datetime.utcnow().date()
     matches = db.session.query(Match).filter(Match.match_day >= yesterday, Match.match_day < today).all()
     for match in matches:
         for evaluation in match.evaluations:
@@ -129,7 +135,8 @@ def send_evaluation_schedule():
             response = slack.conversations.open(users=slack_id, return_im=True)
             channel = response.body['channel']['id']
             slack.chat.post_message(channel=channel, blocks=blocks)
-    db.session.commit()
+    if matches:
+        db.session.commit()
 
 
 def send_join_invitation_schedule():
@@ -143,9 +150,10 @@ def send_join_invitation_schedule():
 
 
 if __name__ == "__main__":
-    match_make_schedule()
+    # match_make_schedule()
+    send_evaluation_schedule()
     # sched = BlockingScheduler()
     # sched.add_job(send_evaluation_schedule, 'cron', hour=1)
     # sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
-    # sched.add_job(match_make_schedule, 'cron', hour=15)
+    # sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
     # sched.start()

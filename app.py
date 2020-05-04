@@ -94,7 +94,7 @@ def update_command_view(data, input_blocks_type, service_enable_time):
             elif user_action == 'unregister':
                 update_message += " " + "언제라도 다시 돌아올 수 있습니다."
         elif input_blocks_type.startswith("evaluation_blocks"):
-            if is_overlap_evaluation(user_action):
+            if is_overlap_evaluation(input_blocks_type):
                 update_message = "오늘의 설문에 대해 이미 응답하셨습니다."
             else:
                 update_message = "응답해주셔서 감사합니다."
