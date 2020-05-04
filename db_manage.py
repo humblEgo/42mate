@@ -1,6 +1,7 @@
 from models import User, Match, Evaluation
 from app import db
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 from sqlalchemy import extract
 
 
@@ -58,19 +59,38 @@ def unjoin_user(slack_id):
         print(str(e))
 
 
-def get_user_state(slack_id):
-    if isinstance(slack_id, list):
-        slack_id = slack_id[0]
-    user = User.query.filter_by(slack_id=slack_id).first()
+def get_user_state(user):
     if user is None:
         return None
-    if user.register is True:
-        if user.joined is True:
+    if user.register:
+        if user.joined:
             return "joined"
         else:
             return "unjoined"
     else:
         return "unregistered"
+
+
+def get_user_record(form):
+    slack_id = form.getlist('user_id')[0]
+    user_record = User.query.filter_by(slack_id=slack_id).first()
+    return user_record
+
+
+def get_user_info(form):
+    user_info = {}
+    user = get_user_record(form)
+    user_info['state'] = get_user_state(user)
+    user_info['slack_id'] = user.slack_id
+    user_info['intra_id'] = user.intra_id
+    user_info['match_count'] = user.match_count
+    today = datetime.date(datetime.utcnow())
+    evaluation = Evaluation.query.filter(Evaluation.user == user, Evaluation.match.match_day >= today).first()
+    if evaluation:
+        user_info['current_mate'] = evaluation.mate.intra_id
+    else:
+        user_info['current_mate'] = None
+    return user_info
 
 
 def is_overlap_evaluation(block_id):
