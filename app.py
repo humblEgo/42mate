@@ -34,18 +34,18 @@ def send_eph_message(form, service_enable_time):
     slack_id = form.getlist('user_id')[0]
     call_channel = form.getlist('channel_id')
     if service_enable_time:
-        eph_blocks = get_base_blocks("디엠을 확인해주세요!")
+        eph_blocks = get_base_context_blocks("메시지가 전송되었습니다. Apps에서 '42mate'를 확인해주세요!")
     else:
-        eph_blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
+        eph_blocks = get_base_context_blocks("매칭 준비중입니다. 12시 이후에 다시 시도해주세요.")
     slack.chat.post_ephemeral(channel=call_channel, text="", user=[slack_id], blocks=json.dumps(eph_blocks))
 
 
 def send_direct_message(form):
     user_info = get_user_info(form)
     if user_info['state'] is None:  # 처음 등록했을 경우
-        create_user(user_info['slack_id'], user_info['user_name'])
+        create_user(user_info['slack_id'], user_info['intra_id'])
         user_info['state'] = 'unjoined'
-        db.sesssion.commit()
+        db.session.commit()
     blocks = get_info_blocks(user_info)
     response = slack.conversations.open(users=[user_info['slack_id']], return_im=True)
     dm_channel = response.body['channel']['id']
@@ -55,11 +55,12 @@ def send_direct_message(form):
 @app.route("/slack/command", methods=['POST'])
 def command_main():
     form = request.form
+    channel_name = form.getlist('channel_name')[0]
     service_enable_time = not is_readytime()
     if service_enable_time:
         send_direct_message(form)
-    if not(service_enable_time and form.getlist('channel_name')[0] == "directmessage"):
-        send_eph_message(form, service_enable_time)
+        if channel_name != "directmessage" and channel_name != "privategroup":
+            send_eph_message(form, service_enable_time)
     return ("", 200)
 
 

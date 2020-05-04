@@ -77,19 +77,23 @@ def get_user_record(form):
     return user_record
 
 
+def get_user_current_mate(user):
+    if user:
+        today = datetime.date(datetime.utcnow())
+        evaluation = Evaluation.query.filter(Evaluation.user == user).order_by(Evaluation.index.desc()).first()
+        if evaluation and evaluation.match.match_day.date() == today:
+            return evaluation.mate.intra_id
+    return None
+
+
 def get_user_info(form):
     user_info = {}
+    user_info['slack_id'] = form.getlist('user_id')[0]
+    user_info['intra_id'] = form.getlist('user_name')[0]
     user = get_user_record(form)
     user_info['state'] = get_user_state(user)
-    user_info['slack_id'] = user.slack_id
-    user_info['intra_id'] = user.intra_id
-    user_info['match_count'] = user.match_count
-    today = datetime.date(datetime.utcnow())
-    evaluation = Evaluation.query.filter(Evaluation.user == user, Evaluation.match.match_day >= today).first()
-    if evaluation:
-        user_info['current_mate'] = evaluation.mate.intra_id
-    else:
-        user_info['current_mate'] = None
+    user_info['current_mate'] = get_user_current_mate(user)
+
     return user_info
 
 
