@@ -5,7 +5,9 @@ from pytz import timezone, utc
 from sqlalchemy import extract
 
 
-def create_user(slack_id, intra_id):
+def create_user(form):
+    slack_id = form.getlist('user_id')[0]
+    intra_id = form.getlist('user_name')[0]
     try:
         user=User(
             slack_id=slack_id,
@@ -13,6 +15,7 @@ def create_user(slack_id, intra_id):
         )
         db.session.add(user)
         db.session.commit()
+        return user
     except Exception as e:
         print(str(e))
 
@@ -57,8 +60,8 @@ def unjoin_user(slack_id):
 
 
 def get_user_state(user):
-    if user is None:
-        return None
+    # if user is None:
+    #     return None
     if user.register:
         if user.joined:
             return "joined"
@@ -75,24 +78,23 @@ def get_user_record(form):
 
 
 def get_user_current_mate(user):
-    if user:
-        today = datetime.now(timezone('Asia/Seoul')).date()
-        evaluation = Evaluation.query.filter(Evaluation.user == user).order_by(Evaluation.index.desc()).first()
-        utc_time = evaluation.match.match_day
-        seoul_date = utc.localize(utc_time).astimezone(timezone('Asia/Seoul')).date()
-        if evaluation and seoul_date == today:
-            return evaluation.mate.intra_id
-    return None
+    today_kst = datetime.now(timezone('Asia/Seoul'))
+    today_utc = datetime.combine(today_kst.date(), datetime.min.time())
+    yesterday_utc = today_utc - timedelta(days=1)
+    current_evaluation = Evaluation.query.filter(Evaluation.user == user).order_by(Evaluation.index.desc()).first()
+    if current_evaluation is None:
+        return None
+    current_match_day = current_evaluation.match.match_day
+    if current_match_day >= yesterday_utc and current_match_day < today_utc:
+        return current_evaluation.mate.intra_id
 
 
-def get_user_info(form):
+def get_user_info(user):
     user_info = {}
-    user_info['slack_id'] = form.getlist('user_id')[0]
-    user_info['intra_id'] = form.getlist('user_name')[0]
-    user = get_user_record(form)
+    user_info['slack_id'] = user.slack_id
+    user_info['intra_id'] = user.intra_id
     user_info['state'] = get_user_state(user)
     user_info['current_mate'] = get_user_current_mate(user)
-
     return user_info
 
 
