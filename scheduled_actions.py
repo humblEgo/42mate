@@ -6,6 +6,7 @@ from random import sample
 from sqlalchemy import and_
 import json
 from datetime import datetime, timedelta
+from pytz import timezone, utc
 
 
 def create_evaluations_for(match):
@@ -28,39 +29,29 @@ def create_evaluations(matches):
     return total_evaluations
 
 
-def get_unused_matches():
-    all_matches = db.session.query(Match).join(Match.users).all()
-    unused_matches = []
-    for match in all_matches:
-        if match.users[0].joined == True or match.users[1].joined == True:
-            unused_matches += [match]
-    return unused_matches
+def is_match_enable_day(unmatched_users):
+    if unmatched_users and len(unmatched_users) >= 2:
+        return True
+    return False
 
 
-def get_matched_group(unmatched_users, unused_matches):
+def get_matched_group(unmatched_users):
     user = unmatched_users[0]
     unmatched_users.remove(user)
     for i in range(len(unmatched_users)):
         mate = sample(unmatched_users, 1)[0]
-        ret = 0
-        for match in unused_matches:
-            if set([user, mate]).issubset(match.users):
-                ret = 1
-                break
-        if ret == 0 or (i == len(unmatched_users) - 1):
+        history = Evaluation.query.filter_by(user=user, mate=mate).first()
+        if not history or (i == len(unmatched_users) - 1):
             unmatched_users.remove(mate)
             matched_group = [user, mate]
-            for match in unused_matches:
-                if any(user in matched_group for user in match.users):
-                    unused_matches.remove(match)
             return matched_group
 
 
-def get_matched_groups(unmatched_users, unused_matches):
+def get_matched_groups(unmatched_users):
     count_unmatched_users = len(unmatched_users)
     matched_groups = []
     while count_unmatched_users >= 2:
-        matched_groups += [get_matched_group(unmatched_users, unused_matches)]
+        matched_groups += [get_matched_group(unmatched_users)]
         count_unmatched_users -= 2
     return matched_groups
 
@@ -99,7 +90,8 @@ def match_failed_handling(unmatched_user):
     intra_id = unmatched_user.intra_id
     response = slack.conversations.open(users=slack_id, return_im=True)
     channel = response.body['channel']['id']
-    blocks = get_base_blocks("MATCH FAILED. SORRY, " + str(intra_id) + "!")
+    blocks = get_base_blocks("앗, 이를 어쩌죠? 오늘은 *" + intra_id + "* 님과 만날 메이트가 없네요:thinking_face:\n"
+                             + "42메이트를 주변에 알려주시면 메이트를 만날 확률이 올라가요!:thumbsup_all:")
     slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
     unmatched_user.match_count -= 1
 
@@ -107,38 +99,33 @@ def match_failed_handling(unmatched_user):
 def match_make_schedule():
     print("MATCH_MAKE_SCHEDULE_START")
     unmatched_users = db.session.query(User).filter_by(joined=True).order_by('match_count').all()
-    unused_matches = get_unused_matches()
     update_user_field(unmatched_users)
-    matched_groups = get_matched_groups(unmatched_users, unused_matches)
-    matches = []
-    activities = Activity.query.all()
-    for matched_group in matched_groups:
-        matches += [create_match(matched_group, activities)]
-    match_successed_handling(matches)
-    evaluations = create_evaluations(matches)
+    match_enable_day = is_match_enable_day(unmatched_users)
+    if match_enable_day:
+        matched_groups = get_matched_groups(unmatched_users)
+        matches = []
+        activities = Activity.query.all()
+        for matched_group in matched_groups:
+            matches += [create_match(matched_group, activities)]
+        match_successed_handling(matches)
+        evaluations = create_evaluations(matches)
+        db.session.add_all(matches)
+        db.session.add_all(evaluations)
     if unmatched_users:
         match_failed_handling(unmatched_users[0])
     print("MATCH_MAKE_SCHEDULE_ADD_AND_COMMIT_START")
-    db.session.add_all(matches)
-    db.session.add_all(evaluations)
     db.session.commit()
     print("MATCH_MAKE_SCHEDULE_END")
-    return ("", 200)
-
-
-def send_join_invitation_schedule():
-    blocks = get_invitation_blocks()
-    unjoined_users = db.session.query(User).filter(and_(User.register == True, User.joined == False)).all()
-    for user in unjoined_users:
-        slack_id = user.slack_id
-        response = slack.conversations.open(users=slack_id, return_im=True)
-        channel = response.body['channel']['id']
-        slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
 
 
 def send_evaluation_schedule():
-    today = datetime.date(datetime.utcnow())
-    yesterday = today - timedelta(days=1)
+    ktc = datetime.now(timezone('Asia/Seoul'))
+    if ktc.time().hour >= 9 and ktc.time().hour < 24:
+        yesterday = (datetime.utcnow() - timedelta(days=2)).date()
+        today = (datetime.utcnow() - timedelta(days=1)).date()
+    else:
+        yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+        today = datetime.utcnow().date()
     matches = db.session.query(Match).filter(Match.match_day >= yesterday, Match.match_day < today).all()
     for match in matches:
         for evaluation in match.evaluations:
@@ -148,12 +135,23 @@ def send_evaluation_schedule():
             response = slack.conversations.open(users=slack_id, return_im=True)
             channel = response.body['channel']['id']
             slack.chat.post_message(channel=channel, blocks=blocks)
-    db.session.commit()
+    if matches:
+        db.session.commit()
+
+
+def send_join_invitation_schedule():
+    blocks = get_invitation_blocks()
+    unjoined_users = db.session.query(User).filter(User.register == True, User.joined == False).all()
+    for user in unjoined_users:
+        slack_id = user.slack_id
+        response = slack.conversations.open(users=slack_id, return_im=True)
+        channel = response.body['channel']['id']
+        slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
 
 
 if __name__ == "__main__":
     sched = BlockingScheduler()
     sched.add_job(send_evaluation_schedule, 'cron', hour=1)
     sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
-    sched.add_job(match_make_schedule, 'cron', hour=15)
+    sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
     sched.start()

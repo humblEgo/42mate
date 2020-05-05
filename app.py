@@ -3,7 +3,7 @@ from flask import Flask, request, make_response
 from flask_sqlalchemy import SQLAlchemy
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 token = os.environ['SLACK_TOKEN']
 slack = Slacker(token)
@@ -24,7 +24,7 @@ def hello():
 
 def is_readytime():
     utctime = datetime.utcnow()
-    if utctime.hour == 14 and utctime.minute > 42:
+    if utctime.hour == 14 and utctime.minute >= 42:
         # TODO HOUR TO 14, MINUTE TO 42
         return True
     return False
@@ -34,18 +34,18 @@ def send_eph_message(form, service_enable_time):
     slack_id = form.getlist('user_id')[0]
     call_channel = form.getlist('channel_id')
     if service_enable_time:
-        eph_blocks = get_base_blocks("디엠을 확인해주세요!")
+        eph_blocks = get_base_context_blocks("메시지가 전송되었습니다. Apps에서 '42mate'를 확인해주세요!")
     else:
-        eph_blocks = get_base_blocks("지금은 매칭을 준비중입니다.")
+        eph_blocks = get_base_context_blocks("매칭 준비중입니다. 12시 이후에 다시 시도해주세요.")
     slack.chat.post_ephemeral(channel=call_channel, text="", user=[slack_id], blocks=json.dumps(eph_blocks))
 
 
 def send_direct_message(form):
     user_info = get_user_info(form)
     if user_info['state'] is None:  # 처음 등록했을 경우
-        create_user(user_info['slack_id'], user_info['user_name'])
+        create_user(user_info['slack_id'], user_info['intra_id'])
         user_info['state'] = 'unjoined'
-        db.sesssion.commit()
+        db.session.commit()
     blocks = get_info_blocks(user_info)
     response = slack.conversations.open(users=[user_info['slack_id']], return_im=True)
     dm_channel = response.body['channel']['id']
@@ -55,11 +55,12 @@ def send_direct_message(form):
 @app.route("/slack/command", methods=['POST'])
 def command_main():
     form = request.form
+    channel_name = form.getlist('channel_name')[0]
     service_enable_time = not is_readytime()
     if service_enable_time:
         send_direct_message(form)
-    if not(service_enable_time and form.getlist('channel_name')[0] == "directmessage"):
-        send_eph_message(form, service_enable_time)
+        if channel_name != "directmessage" and channel_name != "privategroup":
+            send_eph_message(form, service_enable_time)
     return ("", 200)
 
 
@@ -85,15 +86,21 @@ def update_command_view(data, input_blocks_type, service_enable_time):
         if input_blocks_type == "command_view_blocks":
             update_message = "적용되었습니다."
             if user_action == 'join':
-                update_message += " " + "내일의 메이트는 12시에 공개됩니다."
+                update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
             elif user_action == 'unjoin':
                 update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
             elif user_action == 'register':
                 update_message += " " + "오후 11시 42분까지 메이트 신청이 가능합니다."
             elif user_action == 'unregister':
                 update_message += " " + "언제라도 다시 돌아올 수 있습니다."
+        elif input_blocks_type == "invitation_blocks":
+            update_message = "적용되었습니다."
+            if user_action == 'join':
+                update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
+            elif user_action == 'unjoin':
+                update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
         elif input_blocks_type.startswith("evaluation_blocks"):
-            if is_overlap_evaluation(user_action):
+            if is_overlap_evaluation(input_blocks_type):
                 update_message = "오늘의 설문에 대해 이미 응답하셨습니다."
             else:
                 update_message = "응답해주셔서 감사합니다."
@@ -110,7 +117,7 @@ def command_callback():
     service_enable_time = not is_readytime()
     update_command_view(data, input_blocks_type, service_enable_time)
     if service_enable_time:
-        if input_blocks_type == "command_view_blocks":
+        if input_blocks_type in ["command_view_blocks", "invitation_blocks"]:
             change_user_state_by_action(data)
         elif input_blocks_type.startswith("evaluation_blocks"):
             update_evaluation(data)
