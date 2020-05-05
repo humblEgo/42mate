@@ -41,7 +41,9 @@ def send_eph_message(form, service_enable_time):
 
 
 def send_direct_message(user_info):
-    blocks = get_info_blocks(user_info)
+    info_blocks = get_info_blocks(user_info)
+    command_view_blocks = get_command_view_blocks(user_info)
+    blocks = info_blocks + command_view_blocks
     response = slack.conversations.open(users=[user_info['slack_id']], return_im=True)
     dm_channel = response.body['channel']['id']
     slack.chat.post_message(channel=dm_channel, blocks=json.dumps(blocks))
