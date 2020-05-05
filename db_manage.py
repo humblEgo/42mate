@@ -100,10 +100,8 @@ def get_user_info(user):
 
 def is_overlap_evaluation(block_id):
     evaluation_index = block_id.replace('evaluation_blocks_', '')
-    check = Evaluation.query.filter_by(index=evaluation_index).first().react_time
-    if check is None:
-        return False
-    return True
+    react_time = Evaluation.query.filter_by(index=evaluation_index).first().react_time
+    return True if react_time is not None else False
 
 
 def update_evaluation(data):
