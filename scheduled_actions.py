@@ -124,20 +124,31 @@ def get_today_start_dt():
     return today_start_dt_utc
 
 
-def send_evaluation_schedule():
+def get_target_matches():
     today_start_dt = get_today_start_dt()
     yesterday_start_dt = today_start_dt - timedelta(days=1)
-    matches = db.session.query(Match).filter(Match.match_day >= yesterday_start_dt, Match.match_day < today_start_dt).all()
-    for match in matches:
+    target_matches = db.session.query(Match).filter(Match.match_day >= yesterday_start_dt,
+                                             Match.match_day < today_start_dt).all()
+    return target_matches
+
+
+def send_evaluation_message(evaluation):
+    blocks = get_evaluation_blocks(evaluation)
+    slack_id = evaluation.user.slack_id
+    response = slack.conversations.open(users=slack_id, return_im=True)
+    channel = response.body['channel']['id']
+    slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
+
+
+def send_evaluation_schedule():
+    target_matches = get_target_matches()
+    if target_matches is None:
+        return
+    for match in target_matches:
         for evaluation in match.evaluations:
-            evaluation.send_time = datetime.utcnow()
-            blocks = json.dumps(get_evaluation_blocks(evaluation))
-            slack_id = evaluation.user.slack_id
-            response = slack.conversations.open(users=slack_id, return_im=True)
-            channel = response.body['channel']['id']
-            slack.chat.post_message(channel=channel, blocks=blocks)
-    if matches:
-        db.session.commit()
+            send_evaluation_message(evaluation)
+            evaluation.send_time = datetime.now(utc)
+    db.session.commit()
 
 
 def send_join_invitation_schedule():
@@ -151,7 +162,7 @@ def send_join_invitation_schedule():
 
 
 if __name__ == "__main__":
-    match_make_schedule()
+    # match_make_schedule()
     send_evaluation_schedule()
     # send_join_invitation_schedule()
     # sched = BlockingScheduler()
