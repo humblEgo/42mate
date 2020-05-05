@@ -197,7 +197,6 @@ def get_info_blocks(user_info):
     elif user_info['state'] == 'unregistered':
         text += "앞으로 메이트 매칭이 진행되지 않습니다."
     blocks = [{"type": "context", "elements": [{"type": "mrkdwn", "text": text}]}]
-    # blocks += get_command_view_blocks(user_info)
     return blocks
 
 

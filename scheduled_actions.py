@@ -5,7 +5,7 @@ from models import User, Match, user_identifier, Evaluation, Activity
 from random import sample
 import json
 from datetime import datetime, timedelta
-from pytz import timezone
+from pytz import timezone, utc
 
 
 def create_evaluations_for(match):
@@ -117,15 +117,17 @@ def match_make_schedule():
     print("MATCH_MAKE_SCHEDULE_END")
 
 
+def get_today_start_dt():
+    now_dt_kst = datetime.now(timezone('Asia/Seoul'))
+    today_start_dt_kst = now_dt_kst.replace(hour=00, minute=00, second=00)
+    today_start_dt_utc = today_start_dt_kst.astimezone(utc)
+    return today_start_dt_utc
+
+
 def send_evaluation_schedule():
-    ktc = datetime.now(timezone('Asia/Seoul'))
-    if ktc.time().hour >= 9 and ktc.time().hour < 24:
-        yesterday = (datetime.utcnow() - timedelta(days=2)).date()
-        today = (datetime.utcnow() - timedelta(days=1)).date()
-    else:
-        yesterday = (datetime.utcnow() - timedelta(days=1)).date()
-        today = datetime.utcnow().date()
-    matches = db.session.query(Match).filter(Match.match_day >= yesterday, Match.match_day < today).all()
+    today_start_dt = get_today_start_dt()
+    yesterday_start_dt = today_start_dt - timedelta(days=1)
+    matches = db.session.query(Match).filter(Match.match_day >= yesterday_start_dt, Match.match_day < today_start_dt).all()
     for match in matches:
         for evaluation in match.evaluations:
             evaluation.send_time = datetime.utcnow()
@@ -149,10 +151,11 @@ def send_join_invitation_schedule():
 
 
 if __name__ == "__main__":
-    #match_make_schedule()
-    send_join_invitation_schedule()
-    sched = BlockingScheduler()
-    sched.add_job(send_evaluation_schedule, 'cron', hour=1)
-    sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
-    sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
-    sched.start()
+    match_make_schedule()
+    send_evaluation_schedule()
+    # send_join_invitation_schedule()
+    # sched = BlockingScheduler()
+    # sched.add_job(send_evaluation_schedule, 'cron', hour=1)
+    # sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
+    # sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
+    # sched.start()
