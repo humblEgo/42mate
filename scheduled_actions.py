@@ -150,6 +150,7 @@ def send_join_invitation_schedule():
 
 
 if __name__ == "__main__":
+    # send_join_invitation_schedule()
     sched = BlockingScheduler()
     sched.add_job(send_evaluation_schedule, 'cron', hour=1)
     sched.add_job(send_join_invitation_schedule, 'cron', hour=9)

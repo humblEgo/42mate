@@ -76,33 +76,53 @@ def update_user(data):
         unjoin_user(user_slack_id)
 
 
+def callback_command_view_message(user_action):
+    update_message = "적용되었습니다."
+    if user_action == 'join':
+        update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
+    elif user_action == 'unjoin':
+        update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
+    elif user_action == 'register':
+        update_message += " " + "오후 11시 42분까지 메이트 신청이 가능합니다."
+    elif user_action == 'unregister':
+        update_message += " " + "언제라도 다시 돌아올 수 있습니다."
+    return update_message
+
+
+def callback_invitation_mesasge(user_action):
+    update_message = "적용되었습니다."
+    if user_action == 'join':
+        update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
+    elif user_action == 'unjoin':
+        update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
+    return update_message
+
+
+def callback_evaluation_message(input_blocks_type):
+    if is_overlap_evaluation(input_blocks_type):
+        update_message = "오늘의 설문에 대해 이미 응답하셨습니다."
+    else:
+        update_message = "응답해주셔서 감사합니다."
+    return update_message
+
+
+def get_update_message(data):
+    user_action = data['actions'][0]['value']
+    input_blocks_type = data['actions'][0]['block_id']
+    if input_blocks_type == "command_view_blocks":
+        update_message = callback_command_view_message(user_action)
+    elif input_blocks_type == "invitation_blocks":
+        update_message = callback_invitation_mesasge(user_action)
+    elif input_blocks_type.startswith("evaluation_blocks"):
+        update_message = callback_evaluation_message(input_blocks_type)
+    return update_message
+
+
 def update_command_view(data, service_enable_time):
     ts = data['message']['ts']
     channel = data['channel']['id']
-    user_action = data['actions'][0]['value']
-    input_blocks_type = data['actions'][0]['block_id']
     if service_enable_time:
-        if input_blocks_type == "command_view_blocks":
-            update_message = "적용되었습니다."
-            if user_action == 'join':
-                update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
-            elif user_action == 'unjoin':
-                update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
-            elif user_action == 'register':
-                update_message += " " + "오후 11시 42분까지 메이트 신청이 가능합니다."
-            elif user_action == 'unregister':
-                update_message += " " + "언제라도 다시 돌아올 수 있습니다."
-        elif input_blocks_type == "invitation_blocks":
-            update_message = "적용되었습니다."
-            if user_action == 'join':
-                update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
-            elif user_action == 'unjoin':
-                update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
-        elif input_blocks_type.startswith("evaluation_blocks"):
-            if is_overlap_evaluation(input_blocks_type):
-                update_message = "오늘의 설문에 대해 이미 응답하셨습니다."
-            else:
-                update_message = "응답해주셔서 감사합니다."
+        update_message = get_update_message(data)
     else:
         update_message = "매칭 준비중입니다. 12시 이후에 다시 시도해주세요."
     blocks = get_base_context_blocks(update_message)
