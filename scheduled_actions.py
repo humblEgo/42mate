@@ -3,10 +3,9 @@ from app import db, slack
 from blocks import get_base_blocks, get_match_blocks, get_evaluation_blocks, get_invitation_blocks
 from models import User, Match, user_identifier, Evaluation, Activity
 from random import sample
-from sqlalchemy import and_
 import json
 from datetime import datetime, timedelta
-from pytz import timezone, utc
+from pytz import timezone
 
 
 def create_evaluations_for(match):
@@ -151,9 +150,9 @@ def send_join_invitation_schedule():
 
 if __name__ == "__main__":
     #match_make_schedule()
-    # send_join_invitation_schedule()
-    # sched = BlockingScheduler()
-    # sched.add_job(send_evaluation_schedule, 'cron', hour=1)
-    # sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
-    # sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
-    # sched.start()
+    send_join_invitation_schedule()
+    sched = BlockingScheduler()
+    sched.add_job(send_evaluation_schedule, 'cron', hour=1)
+    sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
+    sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
+    sched.start()

@@ -23,9 +23,7 @@ def get_base_context_blocks(text):
     return blocks
 
 
-def get_command_view_blocks(user_info):
-    value = user_info['state']
-
+def get_action_blocks_by(user_info):
     register_action = {
         "type": "button",
         "text": {
@@ -80,25 +78,27 @@ def get_command_view_blocks(user_info):
             }
         }
     }
-
-    blocks = get_base_blocks(user_info['intra_id'] + "님, 안녕하세요! 무엇을 도와드릴까요?")
-    actions = {
+    action_blocks = {
         "type": "actions",
         "block_id": "command_view_blocks",
         "elements": []
     }
+    user_state = user_info['state']
+    if user_state == "registered":
+        action_blocks['elements'] = [join_action, unregister_action]
+    elif user_state == "joined":
+        action_blocks['elements'] = [unjoin_action, unregister_action]
+    elif user_state == "unjoined":
+        action_blocks['elements'] = [join_action, unregister_action]
+    elif user_state == "unregistered":
+        action_blocks['elements'] = [register_action]
+    return action_blocks
 
-    if value == "register" or value == "registered" or value is None:
-        actions['elements'] = [join_action, unregister_action]
-    elif value == "join" or value == "joined":
-        actions['elements'] = [unjoin_action, unregister_action]
-    elif value == "unjoin" or value == "unjoined":
-        actions['elements'] = [join_action, unregister_action]
-    elif value == "unregister" or value == "unregistered":
-        actions['elements'] = [register_action]
 
-    blocks.append(actions)
-
+def get_command_view_blocks(user_info):
+    blocks = get_base_blocks(user_info['intra_id'] + "님, 안녕하세요! 무엇을 도와드릴까요?")
+    action_blocks = get_action_blocks_by(user_info)
+    blocks.append(action_blocks)
     return blocks
 
 

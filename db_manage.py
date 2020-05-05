@@ -60,8 +60,6 @@ def unjoin_user(slack_id):
 
 
 def get_user_state(user):
-    # if user is None:
-    #     return None
     if user.register:
         if user.joined:
             return "joined"
