@@ -1,5 +1,10 @@
 def get_base_blocks(text):
-    base_block = [
+    """
+    convert text to slack section blocks format
+    :param text: string
+    :return list: slack blocks contained text
+    """
+    base_blocks = [
         {
             "type": "section",
             "text": {
@@ -8,10 +13,15 @@ def get_base_blocks(text):
             }
         }
     ]
-    return base_block
+    return base_blocks
 
 
 def get_base_context_blocks(text):
+    """
+    convert text to slack context blocks format
+    :param text: string
+    :return list: slack blocks contained text
+    """
     blocks = [
         {
             "type": "context",
@@ -24,6 +34,10 @@ def get_base_context_blocks(text):
 
 
 def get_action_blocks_by(user_info):
+    """
+    :param user_info: dictionary
+    :return list: slack blocks contained possible action buttons
+    """
     register_action = {
         "type": "button",
         "text": {
@@ -96,6 +110,10 @@ def get_action_blocks_by(user_info):
 
 
 def get_command_view_blocks(user_info):
+    """
+    :param user_info: dictionary
+    :return list: slack blocks that combines base blocks and action blocks
+    """
     blocks = get_base_blocks(user_info['intra_id'] + "님, 안녕하세요! 무엇을 도와드릴까요?")
     action_blocks = get_action_blocks_by(user_info)
     blocks.append(action_blocks)
@@ -103,6 +121,11 @@ def get_command_view_blocks(user_info):
 
 
 def get_evaluation_blocks(evaluation):
+    """
+    make evaluation blocks with user name and mate name in evaluation
+    :param evaluation: Evaluation
+    :return list: slack blocks that contains evaluation blocks
+    """
     evaluation_blocks = [
         {
             "type": "section",
@@ -168,6 +191,11 @@ def get_evaluation_blocks(evaluation):
 
 
 def get_match_blocks(match):
+    """
+    make match blocks with matched users' name and activity
+    :param match:
+    :return list: slack blocks that contains match guide message
+    """
     text = "따-단! *" + match.users[0].intra_id + "* 님과 *" + match.users[1].intra_id + "* 님은 오늘의 메이트입니다. \n" \
         + "온라인 미션과 함께 서로에 대해 알아가며 흥미로운 시간을 만들어보세요. \n" \
         + "곧 클러스터에서 만나면 반갑게 인사할 수 있게요!"
@@ -186,6 +214,10 @@ def get_match_blocks(match):
 
 
 def get_info_blocks(user_info):
+    """
+    :param user_info: dictionary
+    :return list: slack blocks that contains information based on user state
+    """
     if user_info['current_mate']:
         text = "오늘의 메이트는 *" + user_info['current_mate'] + "* 님입니다. "
     else:
@@ -201,7 +233,10 @@ def get_info_blocks(user_info):
 
 
 def get_invitation_blocks():
-    invitaion_blocks = [
+    """
+    :return list: slack blocks that contains invitation blocks
+    """
+    invitation_blocks = [
         {
             "type": "section",
             "text": {
@@ -234,4 +269,4 @@ def get_invitation_blocks():
             ]
         }
     ]
-    return invitaion_blocks
+    return invitation_blocks

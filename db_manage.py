@@ -6,6 +6,10 @@ from sqlalchemy import extract
 
 
 def create_user(form):
+    """
+    :param form: payload from slack slash command
+    :return User: created user in database
+    """
     slack_id = form.getlist('user_id')[0]
     intra_id = form.getlist('user_name')[0]
     try:
@@ -70,6 +74,10 @@ def get_user_state(user):
 
 
 def get_user_record(form):
+    """
+    :param form: payload from slack slash command
+    :return User: record of the user who entered command from database
+    """
     slack_id = form.getlist('user_id')[0]
     user_record = User.query.filter_by(slack_id=slack_id).first()
     return user_record
@@ -88,6 +96,10 @@ def get_user_current_mate(user):
 
 
 def get_user_info(user):
+    """
+    :param user: User
+    :return dictionary: user infomation
+    """
     user_info = {}
     user_info['slack_id'] = user.slack_id
     user_info['intra_id'] = user.intra_id
