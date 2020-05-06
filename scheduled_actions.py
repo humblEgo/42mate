@@ -9,6 +9,10 @@ from pytz import timezone, utc
 
 
 def create_evaluations_for(match):
+    """
+    :param match: Match
+    :return list: list of Evaluation for each user of match
+    """
     evaluations = []
     for i, user in enumerate(match.users):
         if i == 0:
@@ -21,6 +25,10 @@ def create_evaluations_for(match):
 
 
 def create_evaluations(matches):
+    """
+    :param matches: list of Match
+    :return list: list of Evaluation for matches
+    """
     total_evaluations = []
     for match in matches:
         evaluations = create_evaluations_for(match=match)
@@ -29,12 +37,21 @@ def create_evaluations(matches):
 
 
 def is_match_enable_day(unmatched_users):
+    """
+    :param unmatched_users: list of User
+    :return boolean: True if unmatched users are equal to or more than 2 people
+    """
     if unmatched_users and len(unmatched_users) >= 2:
         return True
     return False
 
 
 def get_matched_group(unmatched_users):
+    """
+
+    :param unmatched_users: list of User
+    :return list: user and mate
+    """
     user = unmatched_users[0]
     unmatched_users.remove(user)
     for i in range(len(unmatched_users)):
