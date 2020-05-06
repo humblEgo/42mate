@@ -40,6 +40,7 @@ class User(db.Model):
 
 class Match(db.Model):
     __tablename__ = 'matches'
+
     index = db.Column(db.Integer, primary_key=True)
     match_day = db.Column(db.DateTime)
     users = db.relationship(User, secondary=user_identifier, backref='matches')

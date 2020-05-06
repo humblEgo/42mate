@@ -25,6 +25,10 @@ def create_user(form):
 
 
 def register_user(slack_id):
+    """
+    update register field to True and joined field to False from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.register = True
@@ -35,6 +39,10 @@ def register_user(slack_id):
 
 
 def unregister_user(slack_id):
+    """
+    update register field to False and joined field to False from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.register = False
@@ -45,6 +53,10 @@ def unregister_user(slack_id):
 
 
 def join_user(slack_id):
+    """
+    update register field to True and joined field to True from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.register = True
@@ -55,6 +67,10 @@ def join_user(slack_id):
 
 
 def unjoin_user(slack_id):
+    """
+    update joined field to False from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.joined = False
@@ -64,6 +80,10 @@ def unjoin_user(slack_id):
 
 
 def get_user_state(user):
+    """
+    :param user: User
+    :return string: user state based on register and joined field from user record
+    """
     if user.register:
         if user.joined:
             return "joined"
@@ -84,6 +104,11 @@ def get_user_record(form):
 
 
 def get_user_current_mate(user):
+    """
+    get today's mate by getting evaluation record based on current day
+    :param user: User
+    :return string or none: today's mate if exists
+    """
     today_kst = datetime.now(timezone('Asia/Seoul'))
     today_utc = datetime.combine(today_kst.date(), datetime.min.time())
     yesterday_utc = today_utc - timedelta(days=1)
@@ -98,7 +123,7 @@ def get_user_current_mate(user):
 def get_user_info(user):
     """
     :param user: User
-    :return dictionary: user infomation
+    :return dictionary: user information
     """
     user_info = {}
     user_info['slack_id'] = user.slack_id
@@ -109,12 +134,20 @@ def get_user_info(user):
 
 
 def is_overlap_evaluation(block_id):
+    """
+    :param block_id: string
+    :return boolean: True if react_time exists
+    """
     evaluation_index = block_id.replace('evaluation_blocks_', '')
     react_time = Evaluation.query.filter_by(index=evaluation_index).first().react_time
-    return True if react_time is not None else False
+    return True if react_time else False
 
 
 def update_evaluation(data):
+    """
+    update react_time and satisfaction field from evaluation record
+    :param data: payload from evaluation callback
+    """
     try:
         evaluation_index = data['message']['blocks'][1]['block_id'].replace('evaluation_blocks_', '')
         evaluation = Evaluation.query.filter_by(index=evaluation_index).first()
