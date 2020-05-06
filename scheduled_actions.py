@@ -116,8 +116,6 @@ def make_match_and_evaluation_schedule():
     if unmatched_users:
         send_match_fail_message(unmatched_users[0])
         unmatched_users[0].match_count -= 1
-        #TODO 매치카운트 1 빼는게 db에 반영되는지 확인 필요!
-        # match_failed_handling(unmatched_users[0])
     print("MATCH_MAKE_SCHEDULE_ADD_AND_COMMIT_START")
     db.session.commit()
     print("MATCH_MAKE_SCHEDULE_END")

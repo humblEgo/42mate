@@ -30,13 +30,10 @@ def is_readytime():
     return False
 
 
-def send_eph_message(form, service_enable_time):
+def send_eph_message(form):
     slack_id = form.getlist('user_id')[0]
     call_channel = form.getlist('channel_id')
-    if service_enable_time:
-        eph_blocks = get_base_context_blocks("메시지가 전송되었습니다. Apps에서 '42mate'를 확인해주세요!")
-    else:
-        eph_blocks = get_base_context_blocks("매칭 준비중입니다. 12시 이후에 다시 시도해주세요.")
+    eph_blocks = get_base_context_blocks("메시지가 전송되었습니다. Apps에서 '42mate'를 확인해주세요!")
     slack.chat.post_ephemeral(channel=call_channel, text="", user=[slack_id], blocks=json.dumps(eph_blocks))
 
 
@@ -47,6 +44,18 @@ def send_direct_message(user_info):
     response = slack.conversations.open(users=[user_info['slack_id']], return_im=True)
     dm_channel = response.body['channel']['id']
     slack.chat.post_message(channel=dm_channel, blocks=json.dumps(blocks))
+
+
+def send_excuse_message(form):
+    slack_id = form.getlist('user_id')[0]
+    blocks = get_base_context_blocks("매칭 준비중입니다. 자정 12시 이후에 다시 시도해주세요.")
+    call_channel = form.getlist('channel_id')[0]
+    if call_channel.startswith("C"):
+        channel = call_channel
+    else:
+        response = slack.conversations.open(users=slack_id, return_im=True)
+        channel = response.body['channel']['id']
+    slack.chat.post_ephemeral(channel=channel, text="", user=[slack_id], blocks=json.dumps(blocks))
 
 
 @app.route("/slack/command", methods=['POST'])
@@ -60,8 +69,10 @@ def command_main():
             user = create_user(form)
         user_info = get_user_info(user)
         send_direct_message(user_info)
-    if channel_name != "directmessage" and channel_name != "privategroup":
-        send_eph_message(form, service_enable_time)
+        if channel_name != "directmessage" and channel_name != "privategroup":
+            send_eph_message(form, service_enable_time)
+    else:
+        send_excuse_message(form)
     return ("", 200)
 
 
@@ -126,7 +137,7 @@ def update_command_view(data, service_enable_time):
     if service_enable_time:
         update_message = get_update_message(data)
     else:
-        update_message = "매칭 준비중입니다. 12시 이후에 다시 시도해주세요."
+        update_message = "매칭 준비중입니다. 자정 12시 이후에 다시 시도해주세요."
     blocks = get_base_context_blocks(update_message)
     slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(blocks))
 
