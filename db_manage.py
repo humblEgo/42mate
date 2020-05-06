@@ -106,8 +106,9 @@ def update_evaluation(data):
     try:
         evaluation_index = data['message']['blocks'][1]['block_id'].replace('evaluation_blocks_', '')
         evaluation = Evaluation.query.filter_by(index=evaluation_index).first()
-        evaluation.satisfaction = int(data['actions'][0]['value'])
-        evaluation.react_time = datetime.utcnow()
-        db.session.commit()
+        if evaluation.react_time is None:
+            evaluation.react_time = datetime.now(utc)
+            evaluation.satisfaction = int(data['actions'][0]['value'])
+            db.session.commit()
     except Exception as e:
         print(str(e))

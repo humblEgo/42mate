@@ -39,8 +39,8 @@ def get_matched_group(unmatched_users):
     unmatched_users.remove(user)
     for i in range(len(unmatched_users)):
         mate = sample(unmatched_users, 1)[0]
-        history = Evaluation.query.filter_by(user=user, mate=mate).first()
-        if not history or (i == len(unmatched_users) - 1):
+        match_history = Evaluation.query.filter_by(user=user, mate=mate).first()
+        if not match_history or (i == len(unmatched_users) - 1):
             unmatched_users.remove(mate)
             matched_group = [user, mate]
             return matched_group
@@ -65,13 +65,21 @@ def create_match(matched_group, activities):
     return match
 
 
+def create_matches_of(matched_groups):
+    matches = []
+    activities = Activity.query.all()
+    for matched_group in matched_groups:
+        matches += [create_match(matched_group, activities)]
+    return matches
+
+
 def update_user_field(unmatched_users):
     for user in unmatched_users:
         user.joined = False
         user.match_count += 1
 
 
-def match_successed_handling(matches):
+def let_matched_users_meet(matches):
     print("MATCH_SUCCESSED_HANDLING")
     for match in matches:
         slack_id = [match.users[0].slack_id, match.users[1].slack_id]
@@ -82,7 +90,7 @@ def match_successed_handling(matches):
         slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
 
 
-def match_failed_handling(unmatched_user):
+def send_match_fail_message(unmatched_user):
     print("MATCH_FAILED_HANDLING")
     slack_id = unmatched_user.slack_id
     print("_SLACK_ID: " + str(slack_id))
@@ -92,26 +100,24 @@ def match_failed_handling(unmatched_user):
     blocks = get_base_blocks("앗, 이를 어쩌죠? 오늘은 *" + intra_id + "* 님과 만날 메이트가 없네요:thinking_face:\n"
                              + "42메이트를 주변에 알려주시면 메이트를 만날 확률이 올라가요!:thumbsup_all:")
     slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
-    unmatched_user.match_count -= 1
 
 
-def match_make_schedule():
-    print("MATCH_MAKE_SCHEDULE_START")
+def make_match_and_evaluation_schedule():
+    print("MAKE_MATCH_AND_EVALUATION_SCHEDULE_START")
     unmatched_users = db.session.query(User).filter_by(joined=True).order_by('match_count').all()
     update_user_field(unmatched_users)
-    match_enable_day = is_match_enable_day(unmatched_users)
-    if match_enable_day:
+    if is_match_enable_day(unmatched_users):
         matched_groups = get_matched_groups(unmatched_users)
-        matches = []
-        activities = Activity.query.all()
-        for matched_group in matched_groups:
-            matches += [create_match(matched_group, activities)]
-        match_successed_handling(matches)
-        evaluations = create_evaluations(matches)
+        matches = create_matches_of(matched_groups=matched_groups)
+        let_matched_users_meet(matches)
         db.session.add_all(matches)
+        evaluations = create_evaluations(matches)
         db.session.add_all(evaluations)
     if unmatched_users:
-        match_failed_handling(unmatched_users[0])
+        send_match_fail_message(unmatched_users[0])
+        unmatched_users[0].match_count -= 1
+        #TODO 매치카운트 1 빼는게 db에 반영되는지 확인 필요!
+        # match_failed_handling(unmatched_users[0])
     print("MATCH_MAKE_SCHEDULE_ADD_AND_COMMIT_START")
     db.session.commit()
     print("MATCH_MAKE_SCHEDULE_END")
@@ -162,7 +168,7 @@ def send_join_invitation_schedule():
 
 
 if __name__ == "__main__":
-    # match_make_schedule()
+    # make_match_and_evaluation_schedule()
     send_evaluation_schedule()
     # send_join_invitation_schedule()
     # sched = BlockingScheduler()

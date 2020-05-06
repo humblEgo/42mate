@@ -102,7 +102,7 @@ def callback_invitation_mesasge(user_action):
 
 def callback_evaluation_message(input_blocks_type):
     if is_overlap_evaluation(input_blocks_type):
-        update_message = "오늘의 설문에 대해 이미 응답하셨습니다."
+        update_message = "이미 응답된 설문입니다."
     else:
         update_message = "응답해주셔서 감사합니다."
     return update_message
