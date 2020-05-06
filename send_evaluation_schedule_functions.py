@@ -1,6 +1,6 @@
 from app import db, slack
-from blocks import get_base_blocks, get_match_blocks, get_evaluation_blocks, get_invitation_blocks
-from models import User, Match, user_identifier, Evaluation, Activity
+from blocks import get_evaluation_blocks
+from models import Match
 import json
 from datetime import datetime, timedelta
 from pytz import timezone, utc
