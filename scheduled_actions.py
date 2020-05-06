@@ -1,9 +1,13 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from blocks import get_invitation_blocks
+from app import db, slack
 from models import User
-
-from make_match_and_evaluation_schedule_functions import *
-from send_evaluation_schedule_functions import *
+from datetime import datetime
+import json
+from make_match_and_evaluation_schedule_functions import create_evaluations,\
+    is_match_enable_day, get_matched_groups, create_matches_of, update_user_field,\
+    let_matched_users_meet, send_match_fail_message
+from send_evaluation_schedule_functions import get_target_matches, send_evaluation_message
 
 
 def make_match_and_evaluation_schedule():
@@ -39,7 +43,7 @@ def send_evaluation_schedule():
     for match in target_matches:
         for evaluation in match.evaluations:
             send_evaluation_message(evaluation)
-            evaluation.send_time = datetime.now(utc)
+            evaluation.send_time = datetime.utcnow()
     db.session.commit()
 
 

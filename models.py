@@ -42,13 +42,12 @@ class Match(db.Model):
     __tablename__ = 'matches'
 
     index = db.Column(db.Integer, primary_key=True)
-    match_day = db.Column(db.DateTime)
+    match_day = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     users = db.relationship(User, secondary=user_identifier, backref='matches')
     activity_index = db.Column(db.Integer, db.ForeignKey('activities.index'))
     activity = db.relationship("Activity")
 
     def __init__(self, user1, user2, activity):
-        self.match_day = datetime.now(utc)
         self.users.append(user1)
         self.users.append(user2)
         self.activity = activity

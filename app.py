@@ -2,6 +2,7 @@ from slacker import Slacker
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 import os
+import json
 from datetime import datetime
 
 token = os.environ['SLACK_TOKEN']
@@ -13,10 +14,9 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-from db_manage import join_user, create_user, unjoin_user, register_user, unregister_user, \
-                      update_evaluation, get_user_info, get_user_record
-from send_message_functions import *
-from callback_message_functions import *
+from db_manage import create_user, get_user_info, get_user_record
+from send_message_functions import send_guide_message, send_direct_message, send_excuse_message
+from command_callback_functions import update_command_view, update_database
 
 
 def is_readytime():
@@ -51,69 +51,10 @@ def command_main():
         user_info = get_user_info(user)
         send_direct_message(user_info)
         if channel_name != "directmessage" and channel_name != "privategroup":
-            send_guide_message(form, service_enable_time)
+            send_guide_message(form)
     else:
         send_excuse_message(form)
     return ("", 200)
-
-
-def get_update_message(data):
-    """
-    :param data: payload from command callback
-    :return string: update message based on callback case
-    """
-    user_action = data['actions'][0]['value']
-    input_blocks_type = data['actions'][0]['block_id']
-    if input_blocks_type == "command_view_blocks":
-        update_message = callback_command_view_message(user_action)
-    elif input_blocks_type == "invitation_blocks":
-        update_message = callback_invitation_message(user_action)
-    elif input_blocks_type.startswith("evaluation_blocks"):
-        update_message = callback_evaluation_message(input_blocks_type)
-    return update_message
-
-
-def update_command_view(data, service_enable_time):
-    """
-    update message based on whether current time is service enable time
-    :param data: payload from command callback
-    :param service_enable_time: boolean
-    """
-    ts = data['message']['ts']
-    channel = data['channel']['id']
-    if service_enable_time:
-        update_message = get_update_message(data)
-    else:
-        update_message = "매칭 준비중입니다. 자정 12시 이후에 다시 시도해주세요."
-    blocks = get_base_context_blocks(update_message)
-    slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(blocks))
-
-
-def update_user(data):
-    """
-    :param data: payload from command callback
-    """
-    user_slack_id = data['user']['id']
-    user_action = data['actions'][0]
-    if user_action['value'] == 'register':
-        register_user(user_slack_id)
-    elif user_action['value'] == 'unregister':
-        unregister_user(user_slack_id)
-    elif user_action['value'] == 'join':
-        join_user(user_slack_id)
-    elif user_action['value'] == 'unjoin':
-        unjoin_user(user_slack_id)
-
-def update_database(data):
-    """
-    update database based on callback case
-    :param data: payload from command callback
-    """
-    input_blocks_type = data['actions'][0]['block_id']
-    if input_blocks_type in ["command_view_blocks", "invitation_blocks"]:
-        update_user(data)
-    elif input_blocks_type.startswith("evaluation_blocks"):
-        update_evaluation(data)
 
 
 @app.route("/slack/callback", methods=['POST'])

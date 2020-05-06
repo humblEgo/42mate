@@ -1,7 +1,7 @@
 from models import User, Evaluation
 from app import db
 from datetime import datetime, timedelta
-from pytz import timezone, utc
+from pytz import timezone
 
 
 def create_user(form):
@@ -151,7 +151,7 @@ def update_evaluation(data):
         evaluation_index = data['message']['blocks'][1]['block_id'].replace('evaluation_blocks_', '')
         evaluation = Evaluation.query.filter_by(index=evaluation_index).first()
         if evaluation.react_time is None:
-            evaluation.react_time = datetime.now(utc)
+            evaluation.react_time = datetime.utcnow()
             evaluation.satisfaction = int(data['actions'][0]['value'])
             db.session.commit()
     except Exception as e:

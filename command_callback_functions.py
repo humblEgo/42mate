@@ -2,7 +2,8 @@ from app import slack
 import json
 from blocks import get_base_context_blocks
 from db_manage import join_user, unjoin_user, register_user, unregister_user, update_evaluation
-from callback_message_functions import *
+from callback_message_functions import callback_command_view_message, callback_invitation_message,\
+                                       callback_evaluation_message
 
 def get_update_message(data):
     """
