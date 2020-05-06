@@ -1,8 +1,7 @@
-from models import User, Match, Evaluation
+from models import User, Evaluation
 from app import db
 from datetime import datetime, timedelta
 from pytz import timezone, utc
-from sqlalchemy import extract
 
 
 def create_user(form):

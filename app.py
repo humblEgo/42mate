@@ -1,7 +1,6 @@
 from slacker import Slacker
-from flask import Flask, request, make_response
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
-import json
 import os
 from datetime import datetime
 
@@ -14,13 +13,10 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-from blocks import get_command_view_blocks, get_base_blocks, get_base_context_blocks, get_info_blocks
-from db_manage import join_user, create_user, unjoin_user, get_user_state, register_user, unregister_user, \
-                      update_evaluation, is_overlap_evaluation, get_user_info, get_user_record
-
-@app.route("/")
-def ftmate_main_route():
-    return "This is ftmate_main_route"
+from db_manage import join_user, create_user, unjoin_user, register_user, unregister_user, \
+                      update_evaluation, get_user_info, get_user_record
+from send_message_functions import *
+from callback_message_functions import *
 
 
 def is_readytime():
@@ -33,45 +29,9 @@ def is_readytime():
     return False
 
 
-def send_guide_message(form):
-    """
-    send message that guide where to check direct message
-    :param form: payload from slack slash command 
-    """
-    slack_id = form.getlist('user_id')[0]
-    call_channel = form.getlist('channel_id')
-    eph_blocks = get_base_context_blocks("메시지가 전송되었습니다. Apps에서 '42mate'를 확인해주세요!")
-    slack.chat.post_ephemeral(channel=call_channel, text="", user=[slack_id], blocks=json.dumps(eph_blocks))
-
-
-def send_direct_message(user_info):
-    """
-    send message that user's information and possible action buttons
-    :param user_info: dictionary which contains user information
-    """
-    info_blocks = get_info_blocks(user_info)
-    command_view_blocks = get_command_view_blocks(user_info)
-    blocks = info_blocks + command_view_blocks
-    response = slack.conversations.open(users=[user_info['slack_id']], return_im=True)
-    dm_channel = response.body['channel']['id']
-    slack.chat.post_message(channel=dm_channel, blocks=json.dumps(blocks))
-
-
-def send_excuse_message(form):
-    """
-    send excuese message to called channel if called channel is public
-    send excusse message to app channel if called channel is not public
-    :param form: payload from slack slash command 
-    """
-    slack_id = form.getlist('user_id')[0]
-    blocks = get_base_context_blocks("매칭 준비 중입니다. 자정 12시 이후에 다시 시도해주세요.")
-    call_channel = form.getlist('channel_id')[0]
-    if call_channel.startswith("C"):
-        channel = call_channel
-    else:
-        response = slack.conversations.open(users=slack_id, return_im=True)
-        channel = response.body['channel']['id']
-    slack.chat.post_ephemeral(channel=channel, text="", user=[slack_id], blocks=json.dumps(blocks))
+@app.route("/")
+def ftmate_main_route():
+    return "This is ftmate_main_route"
 
 
 @app.route("/slack/command", methods=['POST'])
@@ -95,64 +55,6 @@ def command_main():
     else:
         send_excuse_message(form)
     return ("", 200)
-
-
-def update_user(data):
-    """
-    :param data: payload from command callback
-    """
-    user_slack_id = data['user']['id']
-    user_action = data['actions'][0]
-    if user_action['value'] == 'register':
-        register_user(user_slack_id)
-    elif user_action['value'] == 'unregister':
-        unregister_user(user_slack_id)
-    elif user_action['value'] == 'join':
-        join_user(user_slack_id)
-    elif user_action['value'] == 'unjoin':
-        unjoin_user(user_slack_id)
-
-
-def callback_command_view_message(user_action):
-    """
-    :param user_action: 
-    :return string: update message by user action
-    """
-    update_message = "적용되었습니다."
-    if user_action == 'join':
-        update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
-    elif user_action == 'unjoin':
-        update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
-    elif user_action == 'register':
-        update_message += " " + "오후 11시 42분까지 메이트 신청이 가능합니다."
-    elif user_action == 'unregister':
-        update_message += " " + "언제라도 다시 돌아올 수 있습니다."
-    return update_message
-
-
-def callback_invitation_message(user_action):
-    """
-    :param user_action: 
-    :return string: update message by user action
-    """
-    update_message = "적용되었습니다."
-    if user_action == 'join':
-        update_message += " " + "내일의 메이트는 자정 12시에 공개됩니다."
-    elif user_action == 'unjoin':
-        update_message += " " + "오후 11시 42분까지 다시 신청이 가능합니다."
-    return update_message
-
-
-def callback_evaluation_message(input_blocks_type):
-    """
-    :param input_blocks_type: 
-    :return string: update message based on evaluation duplication
-    """
-    if is_overlap_evaluation(input_blocks_type):
-        update_message = "이미 응답된 설문입니다."
-    else:
-        update_message = "응답해주셔서 감사합니다."
-    return update_message
 
 
 def get_update_message(data):
@@ -187,6 +89,21 @@ def update_command_view(data, service_enable_time):
     slack.chat.update(channel=channel, ts=ts, text="edit-text", blocks=json.dumps(blocks))
 
 
+def update_user(data):
+    """
+    :param data: payload from command callback
+    """
+    user_slack_id = data['user']['id']
+    user_action = data['actions'][0]
+    if user_action['value'] == 'register':
+        register_user(user_slack_id)
+    elif user_action['value'] == 'unregister':
+        unregister_user(user_slack_id)
+    elif user_action['value'] == 'join':
+        join_user(user_slack_id)
+    elif user_action['value'] == 'unjoin':
+        unjoin_user(user_slack_id)
+
 def update_database(data):
     """
     update database based on callback case
@@ -217,7 +134,8 @@ def command_callback():
 if __name__ == "__main__":
     app.run()
 
-#슬랙 event subscriber
+#슬랙 event subscriber for local test
+# from flask import make_response
 # @app.route("/slack/command", methods=["GET", "POST"])
 # def hears():
 #      slack_event = json.loads(request.data)

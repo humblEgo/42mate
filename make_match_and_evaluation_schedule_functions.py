@@ -1,6 +1,6 @@
-from app import db, slack
+from app import slack
 from blocks import get_base_blocks, get_match_blocks
-from models import User, Match, user_identifier, Evaluation, Activity
+from models import Match, Evaluation, Activity
 from random import sample
 import json
 

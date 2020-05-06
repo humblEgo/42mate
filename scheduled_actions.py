@@ -1,11 +1,6 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
-from app import db, slack
-from blocks import get_base_blocks, get_match_blocks, get_evaluation_blocks, get_invitation_blocks
-from models import User, Match, user_identifier, Evaluation, Activity
-from random import sample
-import json
-from datetime import datetime, timedelta
-from pytz import timezone, utc
+from blocks import get_invitation_blocks
+from models import User
 
 from make_match_and_evaluation_schedule_functions import *
 from send_evaluation_schedule_functions import *
