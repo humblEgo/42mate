@@ -57,4 +57,4 @@
 이 프로젝트는 트렐로와 슬랙을 통해 약 3.5주간 밀도 있는 페어코딩으로 진행되었습니다. **100% 팀원 상호리뷰와 리팩토링**을 거쳤으며, 그 중 **절반 이상의 코드들이 처음부터 페어코딩에 의해 초기 구현되거나 디벨롭**되었습니다. 매일 정기 회의와 함께 회의록을 작성하였으며, 자세힌 개발 히스토리는 [회의록 문서](https://docs.google.com/document/d/10Elm3SYvDszKfWJ0ESh0q480C8-N4-ZdQbV03ATmIMI/edit?usp=sharing)를 통해 확인하실 수 있습니다.
 
 # Error report
-에러 발생시 <**42born2code**> 워크스페이스에서 **eunhkim**, **jaejeon**, **iwoo**에게로 DM을 보내주세요. 향후 Error report 기능을 앱에 추가할 에정입니다.
+에러 발생시 <**42mate**> 워크스페이스의 staff_it channel을 통해 제보해주세요. 향후 Error report 기능을 앱에 추가할 에정입니다. 
