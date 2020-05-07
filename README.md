@@ -16,6 +16,8 @@
 ![](/srcs/usage.gif)   
 현재 [42Mate Slack](http://example.com/ "Title")에서 이용하실 수 있습니다. 어느 채널에서든 채팅창에 <code>/42mate</code>를 입력하기만 하면, 앱 메시지가 갈 거에요. <code>내일 만나기</code> 버튼을 누른 뒤 기다리면 **밤 12시**에 **Mate와의 DM**이 자동으로 만들어진답니다. 기간은 하루이며, (원래는 42분간 오프라인으로 만나야하지만 코로나 19로 인한 리모트 기간이므로) 메이트와 미션도 수행하고 대화도 나눠보세요. 
 
+<a href="https://join.slack.com/t/42matespace/shared_invite/zt-e8ay0otg-e2o9cbxfNp9TurFahcXg0A" target="_blank"><img src="/srcs/join.png" width="300"></a>
+
 # Don't worry
 <details><summary>메이트와 연락이 안 되면 어떡하죠?</summary>
 <p>
