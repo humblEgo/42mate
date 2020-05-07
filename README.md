@@ -1,5 +1,7 @@
-# 42Mate
+# 42Mate  <img src="/srcs/version.png" width="125">
 ![](/srcs/42mate_banner.png)
+  
+<a href="https://join.slack.com/t/42matespace/shared_invite/zt-e8ay0otg-e2o9cbxfNp9TurFahcXg0A" target="_blank"><img src="/srcs/join.png" width="300"></a>
 
 # This is
 ![](/srcs/match.gif)   
