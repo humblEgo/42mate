@@ -4,10 +4,3 @@ venv/
 test.py
 __pycache__/
 *.pyc
-
-
-user : mbqirddtvpzrwg
-passwrod : a0ecab1871bc70cf473040b99229a78a93c30449f2ef20dd5fdc43ca75f6b386
-host : ec2-34-225-82-212.compute-1.amazonaws.com
-port : 5432
-database-name : da1aiace487r3n
