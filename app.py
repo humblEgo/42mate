@@ -30,8 +30,8 @@ def is_readytime():
 
 
 @app.route("/")
-def ftmate_main_route():
-    return "This is ftmate_main_route"
+def ftmate_default_route():
+    return "This is ftmate_default_route"
 
 
 @app.route("/slack/command", methods=['POST'])
