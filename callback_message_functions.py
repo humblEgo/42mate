@@ -3,7 +3,7 @@ from db_manage import is_overlap_evaluation
 
 def callback_command_view_message(user_action):
     """
-    :param user_action:
+    :param user_action: string of button value that user clicked
     :return string: update message by user action
     """
     update_message = "적용되었습니다."
@@ -20,7 +20,7 @@ def callback_command_view_message(user_action):
 
 def callback_invitation_message(user_action):
     """
-    :param user_action:
+    :param user_action: string of button value that user clicked
     :return string: update message by user action
     """
     update_message = "적용되었습니다."
@@ -33,7 +33,7 @@ def callback_invitation_message(user_action):
 
 def callback_evaluation_message(input_blocks_type):
     """
-    :param input_blocks_type:
+    :param input_blocks_type: string
     :return string: update message based on evaluation duplication
     """
     if is_overlap_evaluation(input_blocks_type):
