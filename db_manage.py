@@ -1,11 +1,16 @@
-from models import User, Match, Evaluation
+from models import User, Evaluation
 from app import db
 from datetime import datetime, timedelta
-from pytz import timezone, utc
-from sqlalchemy import extract
+from pytz import timezone
 
 
-def create_user(slack_id, intra_id):
+def create_user(form):
+    """
+    :param form: payload from slack slash command
+    :return User: created user in database
+    """
+    slack_id = form.getlist('user_id')[0]
+    intra_id = form.getlist('user_name')[0]
     try:
         user=User(
             slack_id=slack_id,
@@ -13,11 +18,16 @@ def create_user(slack_id, intra_id):
         )
         db.session.add(user)
         db.session.commit()
+        return user
     except Exception as e:
         print(str(e))
 
 
 def register_user(slack_id):
+    """
+    update register field to True and joined field to False from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.register = True
@@ -28,6 +38,10 @@ def register_user(slack_id):
 
 
 def unregister_user(slack_id):
+    """
+    update register field to False and joined field to False from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.register = False
@@ -38,6 +52,10 @@ def unregister_user(slack_id):
 
 
 def join_user(slack_id):
+    """
+    update register field to True and joined field to True from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.register = True
@@ -48,6 +66,10 @@ def join_user(slack_id):
 
 
 def unjoin_user(slack_id):
+    """
+    update joined field to False from user record
+    :param slack_id: string
+    """
     try:
         user = User.query.filter_by(slack_id=slack_id).first()
         user.joined = False
@@ -57,8 +79,10 @@ def unjoin_user(slack_id):
 
 
 def get_user_state(user):
-    if user is None:
-        return None
+    """
+    :param user: User
+    :return string: user state based on register and joined field from user record
+    """
     if user.register:
         if user.joined:
             return "joined"
@@ -69,47 +93,66 @@ def get_user_state(user):
 
 
 def get_user_record(form):
+    """
+    :param form: payload from slack slash command
+    :return User: record of the user who entered command from database
+    """
     slack_id = form.getlist('user_id')[0]
     user_record = User.query.filter_by(slack_id=slack_id).first()
     return user_record
 
 
 def get_user_current_mate(user):
-    if user:
-        today = datetime.now(timezone('Asia/Seoul')).date()
-        evaluation = Evaluation.query.filter(Evaluation.user == user).order_by(Evaluation.index.desc()).first()
-        utc_time = evaluation.match.match_day
-        seoul_date = utc.localize(utc_time).astimezone(timezone('Asia/Seoul')).date()
-        if evaluation and seoul_date == today:
-            return evaluation.mate.intra_id
-    return None
+    """
+    get today's mate by getting evaluation record based on current day
+    :param user: User
+    :return string or none: today's mate if exists
+    """
+    today_kst = datetime.now(timezone('Asia/Seoul'))
+    today_utc = datetime.combine(today_kst.date(), datetime.min.time())
+    yesterday_utc = today_utc - timedelta(days=1)
+    current_evaluation = Evaluation.query.filter(Evaluation.user == user).order_by(Evaluation.index.desc()).first()
+    if current_evaluation is None:
+        return None
+    current_match_day = current_evaluation.match.match_day
+    if current_match_day >= yesterday_utc and current_match_day < today_utc:
+        return current_evaluation.mate.intra_id
 
 
-def get_user_info(form):
+def get_user_info(user):
+    """
+    :param user: User
+    :return dictionary: user information
+    """
     user_info = {}
-    user_info['slack_id'] = form.getlist('user_id')[0]
-    user_info['intra_id'] = form.getlist('user_name')[0]
-    user = get_user_record(form)
+    user_info['slack_id'] = user.slack_id
+    user_info['intra_id'] = user.intra_id
     user_info['state'] = get_user_state(user)
     user_info['current_mate'] = get_user_current_mate(user)
-
     return user_info
 
 
 def is_overlap_evaluation(block_id):
+    """
+    :param block_id: string
+    :return boolean: True if react_time exists
+    """
     evaluation_index = block_id.replace('evaluation_blocks_', '')
-    check = Evaluation.query.filter_by(index=evaluation_index).first().react_time
-    if check is None:
-        return False
-    return True
+    react_time = Evaluation.query.filter_by(index=evaluation_index).first().react_time
+    return True if react_time else False
 
 
 def update_evaluation(data):
+    """
+    update react_time and satisfaction field from evaluation record
+    :param data: payload from evaluation callback
+    """
     try:
         evaluation_index = data['message']['blocks'][1]['block_id'].replace('evaluation_blocks_', '')
         evaluation = Evaluation.query.filter_by(index=evaluation_index).first()
-        evaluation.satisfaction = int(data['actions'][0]['value'])
-        evaluation.react_time = datetime.utcnow()
-        db.session.commit()
+        if evaluation.react_time is None:
+            evaluation.react_time = datetime.utcnow()
+            evaluation.satisfaction = int(data['actions'][0]['value'])
+            db.session.commit()
     except Exception as e:
         print(str(e))

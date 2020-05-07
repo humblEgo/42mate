@@ -1,145 +1,56 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
+from blocks import get_invitation_blocks
 from app import db, slack
-from blocks import get_base_blocks, get_match_blocks, get_evaluation_blocks, get_invitation_blocks
-from models import User, Match, user_identifier, Evaluation, Activity
-from random import sample
-from sqlalchemy import and_
+from models import User
+from datetime import datetime
 import json
-from datetime import datetime, timedelta
-from pytz import timezone, utc
+from make_match_and_evaluation_schedule_functions import create_evaluations,\
+    is_match_enable_day, get_matched_groups, create_matches_of, update_user_field,\
+    let_matched_users_meet, send_match_fail_message
+from send_evaluation_schedule_functions import get_target_matches, send_evaluation_message
 
 
-def create_evaluations_for(match):
-    evaluations = []
-    for i, user in enumerate(match.users):
-        if i == 0:
-            mate = match.users[1]
-        else:
-            mate = match.users[0]
-        evaluation = Evaluation(match, user, mate)
-        evaluations.append(evaluation)
-    return evaluations
-
-
-def create_evaluations(matches):
-    total_evaluations = []
-    for match in matches:
-        evaluations = create_evaluations_for(match=match)
-        total_evaluations += evaluations
-    return total_evaluations
-
-
-def is_match_enable_day(unmatched_users):
-    if unmatched_users and len(unmatched_users) >= 2:
-        return True
-    return False
-
-
-def get_matched_group(unmatched_users):
-    user = unmatched_users[0]
-    unmatched_users.remove(user)
-    for i in range(len(unmatched_users)):
-        mate = sample(unmatched_users, 1)[0]
-        history = Evaluation.query.filter_by(user=user, mate=mate).first()
-        if not history or (i == len(unmatched_users) - 1):
-            unmatched_users.remove(mate)
-            matched_group = [user, mate]
-            return matched_group
-
-
-def get_matched_groups(unmatched_users):
-    count_unmatched_users = len(unmatched_users)
-    matched_groups = []
-    while count_unmatched_users >= 2:
-        matched_groups += [get_matched_group(unmatched_users)]
-        count_unmatched_users -= 2
-    return matched_groups
-
-
-def create_match(matched_group, activities):
-    activity = sample(activities, 1)[0]
-    match = Match(
-        user1=matched_group[0],
-        user2=matched_group[1],
-        activity=activity
-    )
-    return match
-
-
-def update_user_field(unmatched_users):
-    for user in unmatched_users:
-        user.joined = False
-        user.match_count += 1
-
-
-def match_successed_handling(matches):
-    print("MATCH_SUCCESSED_HANDLING")
-    for match in matches:
-        slack_id = [match.users[0].slack_id, match.users[1].slack_id]
-        print("_SLACK_ID: " + str(slack_id[0]) + " & " + str(slack_id[1]))
-        response = slack.conversations.open(users=slack_id, return_im=True)
-        channel = response.body['channel']['id']
-        blocks = get_match_blocks(match)
-        slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
-
-
-def match_failed_handling(unmatched_user):
-    print("MATCH_FAILED_HANDLING")
-    slack_id = unmatched_user.slack_id
-    print("_SLACK_ID: " + str(slack_id))
-    intra_id = unmatched_user.intra_id
-    response = slack.conversations.open(users=slack_id, return_im=True)
-    channel = response.body['channel']['id']
-    blocks = get_base_blocks("앗, 이를 어쩌죠? 오늘은 *" + intra_id + "* 님과 만날 메이트가 없네요:thinking_face:\n"
-                             + "42메이트를 주변에 알려주시면 메이트를 만날 확률이 올라가요!:thumbsup_all:")
-    slack.chat.post_message(channel=channel, blocks=json.dumps(blocks))
-    unmatched_user.match_count -= 1
-
-
-def match_make_schedule():
-    print("MATCH_MAKE_SCHEDULE_START")
+def make_match_and_evaluation_schedule():
+    """
+    make match and evaluation at 00:01 for users who joined on the yesterday
+    if there is a unmatched user in the end, restore the match count that was increased
+    """
+    print("MAKE_MATCH_AND_EVALUATION_SCHEDULE_START")
     unmatched_users = db.session.query(User).filter_by(joined=True).order_by('match_count').all()
     update_user_field(unmatched_users)
-    match_enable_day = is_match_enable_day(unmatched_users)
-    if match_enable_day:
+    if is_match_enable_day(unmatched_users):
         matched_groups = get_matched_groups(unmatched_users)
-        matches = []
-        activities = Activity.query.all()
-        for matched_group in matched_groups:
-            matches += [create_match(matched_group, activities)]
-        match_successed_handling(matches)
-        evaluations = create_evaluations(matches)
+        matches = create_matches_of(matched_groups=matched_groups)
+        let_matched_users_meet(matches)
         db.session.add_all(matches)
+        evaluations = create_evaluations(matches)
         db.session.add_all(evaluations)
     if unmatched_users:
-        match_failed_handling(unmatched_users[0])
+        send_match_fail_message(unmatched_users[0])
+        unmatched_users[0].match_count -= 1
     print("MATCH_MAKE_SCHEDULE_ADD_AND_COMMIT_START")
     db.session.commit()
     print("MATCH_MAKE_SCHEDULE_END")
 
 
 def send_evaluation_schedule():
-    ktc = datetime.now(timezone('Asia/Seoul'))
-    if ktc.time().hour >= 9 and ktc.time().hour < 24:
-        yesterday = (datetime.utcnow() - timedelta(days=2)).date()
-        today = (datetime.utcnow() - timedelta(days=1)).date()
-    else:
-        yesterday = (datetime.utcnow() - timedelta(days=1)).date()
-        today = datetime.utcnow().date()
-    matches = db.session.query(Match).filter(Match.match_day >= yesterday, Match.match_day < today).all()
-    for match in matches:
+    """
+    send messages requesting evaluation of yesterday's match at 10:00 KST
+    """
+    target_matches = get_target_matches()
+    if target_matches is None:
+        return
+    for match in target_matches:
         for evaluation in match.evaluations:
+            send_evaluation_message(evaluation)
             evaluation.send_time = datetime.utcnow()
-            blocks = json.dumps(get_evaluation_blocks(evaluation))
-            slack_id = evaluation.user.slack_id
-            response = slack.conversations.open(users=slack_id, return_im=True)
-            channel = response.body['channel']['id']
-            slack.chat.post_message(channel=channel, blocks=blocks)
-    if matches:
-        db.session.commit()
+    db.session.commit()
 
 
 def send_join_invitation_schedule():
+    """
+    send messages asking join of tomorrow's match at 18:00 KST
+    """
     blocks = get_invitation_blocks()
     unjoined_users = db.session.query(User).filter(User.register == True, User.joined == False).all()
     for user in unjoined_users:
@@ -153,5 +64,5 @@ if __name__ == "__main__":
     sched = BlockingScheduler()
     sched.add_job(send_evaluation_schedule, 'cron', hour=1)
     sched.add_job(send_join_invitation_schedule, 'cron', hour=9)
-    sched.add_job(match_make_schedule, 'cron', hour=15, minute=1)
+    sched.add_job(make_match_and_evaluation_schedule, 'cron', hour=15, minute=1)
     sched.start()

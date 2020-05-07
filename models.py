@@ -1,8 +1,7 @@
 from app import db
 from datetime import datetime
-from pytz import timezone
-import os
 from sqlalchemy import ForeignKey
+from pytz import utc
 
 user_identifier = db.Table('user_identifier',
     db.Column('user_index', db.Integer, db.ForeignKey('users.index')),
@@ -41,14 +40,14 @@ class User(db.Model):
 
 class Match(db.Model):
     __tablename__ = 'matches'
+
     index = db.Column(db.Integer, primary_key=True)
-    match_day = db.Column(db.DateTime)
+    match_day = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     users = db.relationship(User, secondary=user_identifier, backref='matches')
     activity_index = db.Column(db.Integer, db.ForeignKey('activities.index'))
     activity = db.relationship("Activity")
 
     def __init__(self, user1, user2, activity):
-        self.match_day = datetime.utcnow()
         self.users.append(user1)
         self.users.append(user2)
         self.activity = activity
