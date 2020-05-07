@@ -193,7 +193,7 @@ def get_evaluation_blocks(evaluation):
 def get_match_blocks(match):
     """
     make match blocks with matched users' name and activity
-    :param match:
+    :param match: Match
     :return list: slack blocks that contains match guide message
     """
     text = "따-단! *" + match.users[0].intra_id + "* 님과 *" + match.users[1].intra_id + "* 님은 오늘의 메이트입니다. \n" \
