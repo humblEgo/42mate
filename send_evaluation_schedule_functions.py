@@ -2,19 +2,8 @@ from app import db, slack
 from blocks import get_evaluation_blocks
 from models import Match
 import json
-from datetime import datetime, timedelta
-from pytz import timezone, utc
-
-
-def get_today_start_dt():
-    """
-    get today's 00:00:00 KST datetime and convert it to UTC datetime
-    :return datetime: today's 00:00:00 datetime(UTC)
-    """
-    now_dt_kst = datetime.now(timezone('Asia/Seoul'))
-    today_start_dt_kst = now_dt_kst.replace(hour=00, minute=00, second=00)
-    today_start_dt_utc = today_start_dt_kst.astimezone(utc)
-    return today_start_dt_utc
+from datetime import timedelta
+from db_manage import get_today_start_dt
 
 
 def get_target_matches():
