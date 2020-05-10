@@ -1,7 +1,7 @@
 from models import User, Evaluation
 from app import db
 from datetime import datetime, timedelta
-from pytz import timezone
+from pytz import timezone, utc
 
 
 def create_user(form):
@@ -102,14 +102,24 @@ def get_user_record(form):
     return user_record
 
 
+def get_today_start_dt():
+    """
+    get today's 00:00:00 KST datetime and convert it to UTC datetime
+    :return datetime: today's 00:00:00 datetime(UTC)
+    """
+    now_dt_kst = datetime.now(timezone('Asia/Seoul'))
+    today_start_dt_kst = now_dt_kst.replace(hour=00, minute=00, second=00)
+    today_start_dt_utc = today_start_dt_kst.astimezone(utc)
+    return today_start_dt_utc
+
+
 def get_user_current_mate(user):
     """
     get today's mate by getting evaluation record based on current day
     :param user: User
     :return string or none: today's mate if exists
     """
-    today_kst = datetime.now(timezone('Asia/Seoul'))
-    today_utc = datetime.combine(today_kst.date(), datetime.min.time())
+    today_utc = get_today_start_dt()
     yesterday_utc = today_utc - timedelta(days=1)
     current_evaluation = Evaluation.query.filter(Evaluation.user == user).order_by(Evaluation.index.desc()).first()
     if current_evaluation is None:
