@@ -196,7 +196,8 @@ def get_match_blocks(match):
     :param match: Match
     :return list: slack blocks that contains match guide message
     """
-    text = "따-단! *" + match.users[0].intra_id + "* 님과 *" + match.users[1].intra_id + "* 님은 오늘의 메이트입니다. \n" \
+    text = ":raised_hand_with_fingers_splayed:따-단! *" \
+           + match.users[0].intra_id + "* 님과 *" + match.users[1].intra_id + "* 님은 오늘의 메이트입니다! :clap::clap:\n" \
         + "온라인 미션과 함께 서로에 대해 알아가며 흥미로운 시간을 만들어봐요. \n" \
         + "곧 클러스터에서 만나면 반갑게 인사할 수 있게요!"
     blocks = get_base_blocks(text)
@@ -214,7 +215,7 @@ def get_match_blocks(match):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "\n\n *이제, <https://bit.ly/2WJRKcg|42분 타이머>를 켜고 대화를 시작해보세요!* :raised_hand_with_fingers_splayed:"
+                "text": "\n\n *이제, <https://bit.ly/2WJRKcg|42분 타이머>를 켜고 대화를 시작해보세요!* :grin:"
                     }
             }
     blocks.append(timer_link)
