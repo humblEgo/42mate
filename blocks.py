@@ -211,6 +211,15 @@ def get_match_blocks(match):
             }
     blocks.append(content)
     blocks.append({"type": "divider"})
+    timer_link = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "\n\n *이제, <https://bit.ly/2WJRKcg|42분 타이머>를 켜고 대화를 시작해보세요!* :raised_hand_with_fingers_splayed:"
+                    }
+            }
+    blocks.append(timer_link)
+    blocks.append({"type": "divider"})
     return blocks
 
 
