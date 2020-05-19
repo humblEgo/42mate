@@ -205,7 +205,7 @@ def get_match_blocks(match):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*우리를 가깝게 만들 온라인 미션 : " + match.activity.subject + "* :sunglasses:\n" + match.activity.content
+                "text": "*우리를 가깝게 만들 온라인 미션 : " + match.activity.subject + "* :sunglasses:\n" + match.activity.content \
                         + "\n *이제, <https://bit.ly/2WJRKcg:42분 타이머>를 켜고 대화를 시작해보세요!* :raised_hand_with_fingers_splayed:"
                     }
             }
